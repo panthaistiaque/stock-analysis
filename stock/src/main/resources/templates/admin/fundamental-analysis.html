@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Fundamental Analysis Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .doc-section { scroll-margin-top: 2rem; margin-bottom: 5rem; }
+        .formula-card { background: #f8f9fa; border-left: 5px solid #0d6efd; font-family: 'SFMono-Regular', Consolas, monospace; }
+        .sticky-sidebar { position: sticky; top: 2rem; }
+        .dse-note { border-left: 4px solid #ffc107; background: #fffdf5; padding: 1rem; margin-top: 1rem; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row">
+            <!-- Navigation Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="sticky-sidebar">
+                    <h5 class="mb-4">Chapters</h5>
+                    <nav class="nav flex-column nav-pills small">
+                        <a class="nav-link" href="#analysis-hero">Analysis Summary</a>
+                        <a class="nav-link" href="#eps-trend">EPS Trend & Quality</a>
+                        <a class="nav-link" href="#valuation">PE-Based Valuation</a>
+                        <a class="nav-link" href="#intrinsic">Intrinsic Value (Graham)</a>
+                        <a class="nav-link" href="#dividend">Dividend Sustainability</a>
+                        <a class="nav-link" href="#debt">Leverage & Debt Risk</a>
+                        <a class="nav-link" href="#ownership">Ownership Quality</a>
+                        <a class="nav-link" href="#size">Size & Liquidity</a>
+                        <a class="nav-link" href="#stability">Fundamental Stability</a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-lg-9 ps-lg-5">
+                <div class="mb-5">
+                    <h1 class="display-4 fw-bold">Fundamental Analysis</h1>
+                    <p class="lead">Methodology for scoring and interpreting company fundamentals in the Bangladesh Stock Market.</p>
+                </div>
+
+                <!-- Analysis Summary Section -->
+                <section id="analysis-hero" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Analysis Summary & Overall Score</h2>
+                    <p>The "Hero" section at the top of the report provides the aggregate result of the fundamental engine. It summarizes complex multi-modular data into three primary indicators for rapid assessment.</p>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="card p-3 border-0 shadow-sm text-center h-100">
+                                <h5 class="text-primary mb-1">Overall Score</h5>
+                                <p class="small text-muted mb-0">The arithmetic mean (0-100) of all individual module scores.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card p-3 border-0 shadow-sm text-center h-100">
+                                <h5 class="text-primary mb-1">Overall Tone</h5>
+                                <p class="small text-muted mb-0">Visual color-coded status (Good, OK, Warning, Bad).</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card p-3 border-0 shadow-sm text-center h-100">
+                                <h5 class="text-primary mb-1">Overall Decision</h5>
+                                <p class="small text-muted mb-0">High-level textual verdict derived from the final score tier.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered bg-white small text-center align-middle">
+                            <thead class="table-light">
+                                <tr><th>Score Range</th><th>Tone</th><th>Decision Label</th><th>Color Profile</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>75 - 100</td><td>Good</td><td>Strong Fundamentals</td><td><span class="badge bg-success px-3">Green</span></td></tr>
+                                <tr><td>60 - 74</td><td>OK</td><td>Acceptable Fundamentals</td><td><span class="badge bg-info px-3">Cyan</span></td></tr>
+                                <tr><td>45 - 59</td><td>Warning</td><td>Mixed Fundamentals</td><td><span class="badge bg-warning text-dark px-3">Yellow</span></td></tr>
+                                <tr><td>0 - 44</td><td>Bad</td><td>Weak Fundamentals</td><td><span class="badge bg-danger px-3">Red</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- EPS Section -->
+                <section id="eps-trend" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">EPS Trend & Quality</h2>
+                    <p>This module evaluates the growth and consistency of earnings per share (EPS) over time. It identifies "Turnaround" candidates and penalizes volatile or loss-making operations.</p>
+                    <div class="card formula-card p-3 mb-3">
+                        Growth % = ((Latest EPS - Oldest EPS) / |Oldest EPS|) * 100
+                    </div>
+                    <h6>Scoring Parameters:</h6>
+                    <ul class="small">
+                        <li class="mb-2"><strong>Earnings Status (40%):</strong> Identifies structural shifts (e.g., Turnaround Recovery or Weakening Trend).</li>
+                        <li class="mb-2"><strong>Growth Trend (30%):</strong> High scores for growth exceeding 20% annually.</li>
+                        <li class="mb-2"><strong>Profit Stability (20%):</strong> Penalizes "sign-flipping" where a company oscillates between profit and loss.</li>
+                        <li class="mb-2"><strong>Consistency (10%):</strong> Measures the percentage of positive earnings years.</li>
+                    </ul>
+                    <div class="alert alert-danger small">
+                        <i class="bi bi-shield-lock me-2"></i> <strong>Safety Cap:</strong> If a company has zero positive earnings years, its total module score is capped at 35.
+                    </div>
+                </section>
+
+                <!-- Valuation Section -->
+                <section id="valuation" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">PE-Based Valuation</h2>
+                    <p>Standard Price-to-Earnings analysis adjusted for the volatility of the DSE/CSE.</p>
+                    
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block fw-bold text-success">5 - 10</span>
+                                <span class="small text-muted">Attractive</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block fw-bold text-primary">15 - 25</span>
+                                <span class="small text-muted">Fair Value</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-white">
+                                <span class="d-block fw-bold text-danger">> 40</span>
+                                <span class="small text-muted">Speculative</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dse-note small">
+                        <h6 class="text-warning"><i class="bi bi-exclamation-triangle"></i> DSE Context: The "Value Trap"</h6>
+                        An extremely low PE (< 5) in the Bangladesh market often indicates financial distress or impending restructuring. Our engine flags this as the <strong>Distress Zone</strong>.
+                    </div>
+                </section>
+
+
+                <!-- Intrinsic Section -->
+                <section id="intrinsic" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Intrinsic Value (Graham)</h2>
+                    <p>Based on Benjamin Graham's formula for the defensive investor, adjusted for the local market.</p>
+                    <div class="card formula-card p-3 mb-3">
+                        Value (V) = EPS * (8.5 + 2g) <br>
+                        <small class="text-secondary">Where g = average annual growth rate</small>
+                    </div>
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle me-2"></i> <strong>Safety Floor:</strong> 
+                        For loss-making companies, the system uses <strong>Net Asset Value (NAV)</strong> as the intrinsic floor. For stagnant companies (negative growth), an 8.0x PE multiple is used as a conservative baseline.
+                    </div>
+                </section>
+
+                <!-- Dividend Section -->
+                <section id="dividend" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Dividend Sustainability</h2>
+                    <p>Differentiates between Cash returns and Stock (Bonus) dilution.</p>
+                    <div class="card formula-card p-3 mb-3">
+                        Yield = (Cash Dividend % × 10) / Last Trading Price
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless small mb-0">
+                            <tr><td class="fw-bold">Cash Quality</td><td class="text-muted">High priority. Indicates real cash flow.</td></tr>
+                            <tr><td class="fw-bold">Stock Quality</td><td class="text-muted">Low priority. Bonus shares dilute future EPS.</td></tr>
+                            <tr><td class="fw-bold">Payout Ratio</td><td class="text-muted">Warns if payouts exceed 100% of earnings.</td></tr>
+                            <tr><td class="fw-bold">Recency</td><td class="text-muted">Penalizes if no dividend is declared for 3+ years.</td></tr>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Debt Section -->
+                <section id="debt" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Financial Leverage & Debt Risk</h2>
+                    <p>Evaluates the burden of loans relative to the company's size and earnings support.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card p-3 bg-white border-0 shadow-sm text-center">
+                                <div class="text-muted small mb-1">Debt-to-Market-Cap</div>
+                                <div class="h4 mb-0 text-primary">&lt; 30%</div>
+                                <div class="text-success small fw-bold">Healthy</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-3 bg-white border-0 shadow-sm text-center">
+                                <div class="text-muted small mb-1">Short-Term Pressure</div>
+                                <div class="h4 mb-0 text-warning">&gt; 60%</div>
+                                <div class="text-muted small">Refinancing Risk</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ownership Section -->
+                <section id="ownership" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Ownership Quality</h2>
+                    <p>Analyzes the distribution of shares between Sponsors, Institutions, and the Public.</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered bg-white small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Entity</th>
+                                    <th>Optimal Threshold</th>
+                                    <th>Logic</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sponsor</td>
+                                    <td>30% - 50%</td>
+                                    <td>Strong confidence without cornering the market.</td>
+                                </tr>
+                                <tr>
+                                    <td>Institute</td>
+                                    <td>> 20%</td>
+                                    <td>Professional fund manager conviction.</td>
+                                </tr>
+                                <tr>
+                                    <td>Public</td>
+                                    <td>10% - 35%</td>
+                                    <td>Healthy liquidity without excessive speculation.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Size Section -->
+                <section id="size" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Size and Liquidity Proxy</h2>
+                    <p>Uses Market Capitalization and Outstanding Shares to estimate the risk of price manipulation and institutional liquidity.</p>
+                    <ul class="small">
+                        <li class="mb-2"><strong>Large-Cap (> 1,000 Cr):</strong> Typically higher liquidity and lower manipulation risk.</li>
+                        <li class="mb-2"><strong>Mid-Cap (200 - 1,000 Cr):</strong> Balanced profile.</li>
+                        <li class="mb-2"><strong>Small-Cap (< 200 Cr):</strong> Susceptible to high volatility and liquidity traps.</li>
+                    </ul>
+                </section>
+
+
+                <!-- Stability Section -->
+                <section id="stability" class="doc-section">
+                    <h2 class="border-bottom pb-2 mb-4">Fundamental Stability</h2>
+                    <p>An institutional-grade index summarizing business resilience.</p>
+                    <div class="row g-4 mb-3">
+                        <div class="col-4 text-center border-end"><h6>35%</h6><p class="small text-muted">Earnings</p></div>
+                        <div class="col-4 text-center border-end"><h6>20%</h6><p class="small text-muted">Dividend</p></div>
+                        <div class="col-4 text-center"><h6>20%</h6><p class="small text-muted">Financials</p></div>
+                    </div>
+                    <div class="alert alert-secondary small">
+                        Stability Tier: 80+ = Strong, 65+ = Stable, 45+ = Moderate, &lt;30 = Fragile.
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<section th:fragment="script-addon()">
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Flatpickr for all elements with class 'date-picker'
+            flatpickr(".date-picker", {
+                dateFormat: "Y-m-d", // Standard date format
+                // You can add more options here, e.g., minDate, maxDate, etc.
+            });
+        });
+    </script>
+</section>
+
+</html>

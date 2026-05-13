@@ -1,0 +1,75 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <header class="topbar" th:fragment="appHeader(title, username, menus, user)">
+
+        <div class="topbar-title" th:text="${title}">App</div>
+
+        <div class="account-menu">
+            <input class="account-toggle" id="account-menu-toggle" type="checkbox">
+
+            <label class="account-button" for="account-menu-toggle">
+                <img th:if="${user.profilePictureUrl != null && !user.profilePictureUrl.isEmpty()}" th:src="${user.profilePictureUrl}"
+                    class="nav-avatar"
+                    style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; vertical-align: middle;">
+                <i th:unless="${user.profilePictureUrl != null && !user.profilePictureUrl.isEmpty()}"
+                    class="fa-solid fa-circle-user" style="margin-right: 5px;"></i>
+                <span th:text="${(user.fullName != null && !user.fullName.isEmpty()) ? user.fullName : user.username}">User</span>
+            </label>
+
+            <div class="account-dropdown">
+                <div style="padding: 14px; text-align: center;">
+
+                    <!-- PROFILE IMAGE -->
+
+                    <img th:if="${user.profilePictureUrl != null && !user.profilePictureUrl.isEmpty()}"
+                        th:src="${user.profilePictureUrl}" class="nav-avatar" style="width: 70px;
+                    height: 70px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    margin-bottom: 10px;">
+
+                    <!-- DEMO IMAGE -->
+
+                    <img th:unless="${user.profilePictureUrl != null && !user.profilePictureUrl.isEmpty()}"
+                        src="/images/demo-user.jpg" class="nav-avatar" style="width: 70px;
+                    height: 70px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    margin-bottom: 10px;">
+
+                    <!-- FULL NAME -->
+
+                    <div style="font-weight: 600; font-size: 15px; color: black;"
+                        th:text="${(user.fullName != null && !user.fullName.isEmpty()) ? user.fullName : 'Demo User'}">
+                        Demo User
+                    </div>
+
+                    <!-- USERNAME -->
+
+                    <div style="font-size: 13px; color: #777;" th:text="${username}">
+                        username
+                    </div>
+
+                </div>
+
+                <hr>
+
+
+                <a th:each="m : ${menus}" th:href="${m.url}" th:text="${m.name}"></a>
+
+                <hr>
+
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+
+    </header>
+
+</body>
+
+</html>

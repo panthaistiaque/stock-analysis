@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Company Information | Stock')}"></head>
+<head th:replace="~{fragments/head :: commonHead('Company Information | ' + ${appTitle})}"></head>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">Company Information</h1>
+
+                <!-- Search Section -->
+                <section class="panel">
+                    <div class="panel-header">Stock Fundamental Information Search</div>
+                    <div class="panel-body">
+                        <form th:action="@{/company/company-by-code}" method="post" class="inline-form">
+                            <input class="form-control" name="tradingCode" placeholder="Enter Trading Code (e.g. GP)"
+                                required>
+                            <button class="button button-secondary" type="submit">Search</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">Company Information Review</div>
+                    <div class="panel-body">
+                        <div class="alert alert-error" th:if="${scrapeError}" th:text="${scrapeError}"></div>
+                        <div class="alert alert-error" th:if="${saveError}" th:text="${saveError}"></div>
+                        <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+
+                        <div th:if="${company}">
+                            <form th:action="@{/company/save}" th:object="${company}" method="post">
+                            <input type="hidden" name="scrapingDate"
+                                th:value="${company.scrapingDate != null ? company.scrapingDate.toString() : ''}">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Trading Code</label>
+                                    <input class="form-control" th:field="*{tradingCode}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Company Name</label>
+                                    <input class="form-control" th:field="*{companyName}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Sector</label>
+                                    <input class="form-control" th:field="*{sector}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Market Category</label>
+                                    <input class="form-control" th:field="*{marketCategory}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Trading Price</label>
+                                    <input class="form-control" th:field="*{lastTradingPrice}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Market Capitalization</label>
+                                    <input class="form-control" type="number" step="any" th:field="*{marketCapitalization}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Paid-up Capital</label>
+                                    <input class="form-control" type="number" step="any" th:field="*{paidUpCapital}">
+                                </div>
+                                <div class="form-group">
+                                    <label>52 Week Range</label>
+                                    <input class="form-control" th:field="*{week52Range}">
+                                </div>
+                                <div class="form-group">
+                                    <label>PE Ratio</label>
+                                    <input class="form-control" th:field="*{peRatio}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Dividend Yield</label>
+                                    <input class="form-control" th:field="*{dividendYield}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Outstanding Securities</label>
+                                    <input class="form-control" type="number" step="1" th:field="*{outstandingSecurities}">
+                                </div>
+                            </div>
+                            <div class="stats-grid">
+                                <section class="panel stat">
+                                    <div class="panel-header">
+                                        EPS History
+                                    </div>
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Year</th>
+                                                    <th style="text-align:right;">EPS</th>
+                                                    <th style="text-align:right;">NAV/Share</th>
+                                                    <th style="text-align:right;">Profit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="e, stat : *{epsHistory}" th:if="${stat.index < 4}">
+                                                    <td>
+                                                        <input class="form-control" th:field="*{epsHistory[__${stat.index}__].year}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control" type="number" step="any"
+                                                            th:field="*{epsHistory[__${stat.index}__].eps}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control" type="number" step="any"
+                                                            th:field="*{epsHistory[__${stat.index}__].navPerShare}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control" type="number" step="any"
+                                                            th:field="*{epsHistory[__${stat.index}__].profit}">
+                                                    </td>
+                                                </tr>
+                                                <tr th:each="e, stat : *{epsHistory}" th:if="${stat.index >= 4}" style="display:none;">
+                                                    <td colspan="4">
+                                                        <input type="hidden" th:field="*{epsHistory[__${stat.index}__].year}">
+                                                        <input type="hidden" th:field="*{epsHistory[__${stat.index}__].eps}">
+                                                        <input type="hidden" th:field="*{epsHistory[__${stat.index}__].navPerShare}">
+                                                        <input type="hidden" th:field="*{epsHistory[__${stat.index}__].profit}">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                                <section class="panel stat">
+                                    <div class="panel-header">
+                                        Loan Information
+                                    </div>
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Loan Type</th>
+                                                    <th style="text-align:right;">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Short-term Loan</td>
+                                                    <td>
+                                                        <input class="form-control" type="number" step="any"
+                                                            th:field="*{shortTermLoan}">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Long-term Loan</td>
+                                                    <td>
+                                                        <input class="form-control" type="number" step="any"
+                                                            th:field="*{longTermLoan}">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th>Total Loan</th>
+                                                    <th style="text-align:right;" th:text="${#numbers.formatDecimal(
+                                                        (company.shortTermLoan != null ? company.shortTermLoan : 0)
+                                                        +
+                                                        (company.longTermLoan != null ? company.longTermLoan : 0),
+                                                        1,
+                                                        2
+                                                    )}">
+                                                    </th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div class="stats-grid">
+                                <section class="panel stat">
+                                    <div class="panel-header">
+                                        Dividend History
+                                    </div>
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Year</th>
+                                                    <th style="text-align:right;">Cash Dividend (%)</th>
+                                                    <th style="text-align:right;">Stock Dividend (%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="d, stat : *{dividends}" th:if="${stat.index < 6}">
+                                                    <td>
+                                                        <input class="form-control" th:field="*{dividends[__${stat.index}__].year}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{dividends[__${stat.index}__].cashDividend}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{dividends[__${stat.index}__].stockDividend}">
+                                                    </td>
+                                                </tr>
+                                                <tr th:each="d, stat : *{dividends}" th:if="${stat.index >= 6}" style="display:none;">
+                                                    <td colspan="3">
+                                                        <input type="hidden" th:field="*{dividends[__${stat.index}__].year}">
+                                                        <input type="hidden" th:field="*{dividends[__${stat.index}__].cashDividend}">
+                                                        <input type="hidden" th:field="*{dividends[__${stat.index}__].stockDividend}">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                                <section class="panel stat">
+                                    <div class="panel-header">
+                                        Share Holding Information
+                                    </div>
+                                    <div class="panel-body">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Holding Type</th>
+                                                    <th style="text-align:right;">Percentage</th>
+                                                    <th style="text-align:right;"> Share No. </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Sponsor / Director</td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{sponsorHolding}">
+                                                    </td>
+                                                    <td style="text-align:right;"
+                                                        th:text="${#numbers.formatInteger( ((company.outstandingSecurities ?: 0)
+                                                        * T(java.lang.Double).parseDouble(company.sponsorHolding ?: '0')) / 100, 1, 'COMMA' )}">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Government</td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{govtHolding}">
+                                                    </td>
+                                                    <td style="text-align:right;" th:text="${#numbers.formatInteger(
+                                                        ((company.outstandingSecurities ?: 0)
+                                                        * T(java.lang.Double).parseDouble(company.govtHolding ?: '0')) / 100, 1, 'COMMA'
+                                                    )}">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Institute</td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{instituteHolding}">
+                                                    </td>
+                                                    <td style="text-align:right;" th:text="${#numbers.formatInteger(
+                                                        ((company.outstandingSecurities ?: 0)
+                                                        * T(java.lang.Double).parseDouble(company.instituteHolding ?: '0')) / 100, 1, 'COMMA'
+                                                    )}">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Foreign</td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{foreignHolding}">
+                                                    </td>
+                                                    <td style="text-align:right;" th:text="${#numbers.formatInteger(
+                            ((company.outstandingSecurities ?: 0)
+                            * T(java.lang.Double).parseDouble(company.foreignHolding ?: '0')) / 100, 1, 'COMMA'
+                        )}">
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>Public</td>
+                                                    <td>
+                                                        <input class="form-control" th:field="*{publicHolding}">
+                                                    </td>
+                                                    <td style="text-align:right;" th:text="${#numbers.formatInteger(
+                                                        ((company.outstandingSecurities ?: 0)
+                                                        * T(java.lang.Double).parseDouble(company.publicHolding ?: '0')) / 100, 1, 'COMMA'
+                                                    )}">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th>Total</th>
+                                                    <th style="text-align:right;" th:text="${#numbers.formatDecimal(
+                                                        T(java.lang.Double).parseDouble(company.sponsorHolding ?: '0')
+                                                        +
+                                                        T(java.lang.Double).parseDouble(company.govtHolding ?: '0')
+                                                        +
+                                                        T(java.lang.Double).parseDouble(company.instituteHolding ?: '0')
+                                                        +
+                                                        T(java.lang.Double).parseDouble(company.foreignHolding ?: '0')
+                                                        +
+                                                        T(java.lang.Double).parseDouble(company.publicHolding ?: '0'),1,2)
+                                                    }">
+                                                    </th>
+                                                    <th style="text-align:right;"
+                                                        th:text="${#numbers.formatInteger(company.outstandingSecurities ?: 0, 1, 'COMMA')}">
+                                                    </th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </section>
+                            </div>
+                            <!-- ================================= -->
+                            <!-- SAVE BUTTON -->
+                            <!-- ================================= -->
+
+                            <div style="margin-top: 20px; text-align: right;">
+
+                                <button type="submit" class="button button-primary">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    Save Data
+                                </button>
+
+                            </div>
+                            </form>
+                            <!-- ------------------------------------- -->
+
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

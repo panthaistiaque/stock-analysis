@@ -1,0 +1,14 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <nav class="sidebar" th:fragment="sidebar(menus)">
+        <a th:each="m : ${menus}" th:href="${m.url}" th:text="${m.name}">
+            Menu
+        </a>
+    </nav>
+
+</body>
+
+</html>

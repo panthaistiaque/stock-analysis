@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Dashboard | Stock')}"></head>
+<head th:replace="~{fragments/head :: commonHead('Dashboard | ' + ${appTitle})}"></head>
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus},${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="stats-grid">
+                    <section class="panel stat">
+                        <div class="stat-number">Ready</div>
+                        <div>Application status</div>
+                    </section>
+                    <section class="panel stat">
+                        <div class="stat-number" th:text="${isAdmin ? 'Admin' : 'User'}">User</div>
+                        <div>Current access</div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

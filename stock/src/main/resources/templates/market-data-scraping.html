@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Market Data Scraping | ' + ${appTitle})}"></head>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">Market Data Scraping</h1>
+
+                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+                <section class="panel">
+                    <div class="panel-header">Full Market Data Sync</div>
+                    <div class="panel-body">
+                        <p>Automatically update current session data (LTP, Volume, High/Low) for all registered trading codes. 
+                           This background process keeps your entire watchlist synchronized with the live market.</p>
+                        <form th:action="@{/trading-code/scrape-save-all}" method="post" 
+                              onsubmit="return confirm('Initiate full market scraping? This may take several minutes.');">
+                            <button type="submit" class="button button-success">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Global Sync
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">Targeted Historical Scraper</div>
+                    <div class="panel-body">
+                        <p>Fetch missing historical records for a specific stock within a defined date range.</p>
+                        <form th:action="@{/trading-code/scrape-by-date-range}" method="post">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="tradingCode">Trading Code</label>
+                                    <input type="text" class="form-control" id="tradingCode" name="tradingCode"
+                                        placeholder="e.g., GP" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="fromDate">From Date</label>
+                                    <input type="text" class="form-control date-picker" id="fromDate" name="fromDate"
+                                        placeholder="YYYY-MM-DD" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="toDate">To Date</label>
+                                    <input type="text" class="form-control date-picker" id="toDate" name="toDate"
+                                        placeholder="YYYY-MM-DD" required>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <button type="submit" class="button button-secondary">
+                                    <i class="fa-solid fa-calendar-days"></i> Fetch History
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
+</body>
+</html>

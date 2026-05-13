@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+ 
+
+<head th:replace="~{fragments/head :: commonHead('Profile | Stock')}"></head>
+<head th:replace="~{fragments/head :: commonHead('Profile | ' + ${appTitle})}"></head>
+
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+    <div class="layout">
+        <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">Profile</h1>
+
+            <section class="panel">
+                <div class="panel-header">Profile Information</div>
+                <div class="panel-body">
+                    <div class="alert alert-success" th:if="${profileSuccess}" th:text="${profileSuccess}"></div>
+                    <div class="alert alert-error" th:if="${profileError}" th:text="${profileError}"></div>
+                    <form th:action="@{/user/profile}" th:object="${profileForm}" method="post">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input class="form-control" id="fullName" th:field="*{fullName}">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input class="form-control" id="email" th:field="*{email}" type="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input class="form-control" id="phoneNumber" th:field="*{phoneNumber}">
+                            </div>
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select class="form-control" id="gender" th:field="*{gender}">
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea class="form-control" id="address" th:field="*{address}"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="profilePictureUrl">Profile Picture URL</label>
+                            <input class="form-control" id="profilePictureUrl" th:field="*{profilePictureUrl}" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label for="websiteSocialLinks">Website/Social Links</label>
+                            <textarea class="form-control" id="websiteSocialLinks" th:field="*{websiteSocialLinks}"></textarea>
+                        </div>
+                        <button class="button" type="submit">Save Profile</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>

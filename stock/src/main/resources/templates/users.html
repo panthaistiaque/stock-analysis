@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+
+<head th:replace="~{fragments/head :: commonHead('Users | Stock')}"></head>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">User List</h1>
+                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+                <section class="panel">
+                    <div class="panel-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Username</th>
+                                    <th>Status</th>
+                                    <th>Approval</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="user : ${users}">
+                                    <td th:text="${user.id}">1</td>
+                                    <td th:text="${user.fullName}">Full Name</td>
+                                    <td th:text="${user.email}">email</td>
+                                    <td th:text="${user.username}">admin</td>
+                                    <td>
+                                        <span class="badge" th:text="${user.role}"
+                                            th:classappend="${user.role == 'ADMIN'} ? ' badge-danger' : ' badge-primary'">
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success" th:if="${user.approved}">Approved</span>
+                                        <span class="badge badge-warning" th:unless="${user.approved}">Pending</span>
+                                    </td>
+                                    <td>
+                                        <form th:if="${!user.approved}"
+                                            th:action="@{/admin/users/{id}/approve(id=${user.id})}" method="post">
+                                            <button class="button button-success button-small"
+                                                type="submit"><i class="fa-solid fa-circle-check"></i>   Approve</button>
+                                        </form>
+                                        <button th:if="${user.approved}" class="button button-success button-small" type="submit" th:disabled="${user.approved}"><i class="fa-solid fa-circle-check"></i>   Approve</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

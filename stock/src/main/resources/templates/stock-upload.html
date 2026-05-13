@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+
+<head th:replace="~{fragments/head :: commonHead('Upload Stock | Stock')}"></head>
+
+<body>
+<div class="app-shell">
+   <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+    <div class="layout">
+        <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+        <main class="content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title mb-0">Upload Stock Data</h1>
+                <a th:href="@{/stocks/data}" class="button button-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+
+            <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+            <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+            <section class="panel">
+                <div class="panel-header">Excel Upload</div>
+                <div class="panel-body">
+                    <form th:action="@{/stocks/upload}" method="post" enctype="multipart/form-data" class="inline-form">
+                        <input class="form-control" name="file" type="file" accept=".xlsx,.xls" required>
+                        <button class="button" type="submit">Preview</button>
+                    </form>
+                </div>
+            </section>
+
+            <div class="table-actions" th:if="${!previewRows.isEmpty()}">
+                <form th:action="@{/stocks/save}" method="post">
+                    <button class="button button-success" type="submit">Save</button>
+                </form>
+            </div>
+
+            <section class="panel" th:if="${!previewRows.isEmpty()}">
+                <div class="panel-header">Preview</div>
+                <div class="panel-body table-wrap">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>DATE</th>
+                            <th>TRADING CODE</th>
+                            <th>LTP</th>
+                            <th>HIGH</th>
+                            <th>LOW</th>
+                            <th>OPENP</th>
+                            <th>CLOSEP</th>
+                            <th>YCP</th>
+                            <th>TRADE VALUE</th>
+                            <th>VOLUME</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${previewRows}">
+                            <td th:text="${row.date}">2026-01-01</td>
+                            <td th:text="${row.tradingCode}">ABC</td>
+                            <td th:text="${row.ltp}">0</td>
+                            <td th:text="${row.high}">0</td>
+                            <td th:text="${row.low}">0</td>
+                            <td th:text="${row.openp}">0</td>
+                            <td th:text="${row.closep}">0</td>
+                            <td th:text="${row.ycp}">0</td>
+                            <td th:text="${row.tradeValue}">0</td>
+                            <td th:text="${row.volume}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>

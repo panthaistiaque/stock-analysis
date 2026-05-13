@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Saved Companies | Stock')}"></head>
+<head th:replace="~{fragments/head :: commonHead('Saved Companies | ' + ${appTitle})}"></head>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="page-title mb-0">Listed Companies</h1>
+                    <a th:href="@{/company/view}" class="button">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Scrape Company
+                    </a>
+                </div>
+
+                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+                <section class="panel">
+                    <div class="panel-header">Search Companies</div>
+                    <div class="panel-body">
+                        <form th:action="@{/company/list}" method="get" class="form-grid">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input class="form-control" name="code" th:value="${code}" placeholder="Trading code">
+                            </div>
+                            <div class="form-group">
+                                <label>Sector</label>
+                                <input class="form-control" name="sector" th:value="${sector}" placeholder="Sector">
+                            </div>
+                            <div class="form-group">
+                                <label>Market Category</label>
+                                <input class="form-control" name="marketCategory" th:value="${marketCategory}"
+                                    placeholder="Category">
+                            </div>
+                            <div class="form-group">
+                                <label>PE Ratio Range</label>
+                                <div class="inline-form">
+                                    <input class="form-control" type="number" step="any" name="minPeRatio"
+                                        th:value="${minPeRatio}" placeholder="Min">
+                                    <input class="form-control" type="number" step="any" name="maxPeRatio"
+                                        th:value="${maxPeRatio}" placeholder="Max">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="button button-secondary" type="submit">
+                                    <i class="fa-solid fa-filter"></i> Search
+                                </button>
+                                <a class="button" th:href="@{/company/list}">Clear</a>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">Company Records</div>
+                    <div class="panel-body table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Market Category</th>
+                                    <th>Sector</th>
+                                    <th style="text-align:right;">PE Ratio</th>
+                                    <th style="text-align:right;">Last Year EPS</th>
+                                    <th style="text-align:right;">Last Year Dividend</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="company : ${companies}">
+                                    <td class="fw-bold" th:text="${company.code}"></td>
+                                    <td th:text="${company.marketCategory ?: '-'}"></td>
+                                    <td th:text="${company.sector ?: '-'}"></td>
+                                    <td style="text-align:right;" th:text="${company.peRatio ?: '-'}"></td>
+                                    <td style="text-align:right;" th:text="${company.lastEpsDisplay}"></td>
+                                    <td style="text-align:right;" th:text="${company.lastDividendDisplay}"></td>
+                                    <td>
+                                        <div class="button-group">
+                                            <a class="button button-small"
+                                                th:href="@{/company/{code}/report(code=${company.code})}">
+                                                <i class="fa-solid fa-eye"></i> View
+                                            </a>
+                                            <a class="button button-small button-success"
+                                                th:href="@{/fundamental-analysis/{code}(code=${company.code})}">
+                                                <i class="fa-solid fa-chart-line"></i> Analysis
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(companies)}">
+                                    <td colspan="7" style="text-align: center; padding: 2rem;">No company records found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

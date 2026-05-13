@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Fundamental Analysis | Stock')}"></head>
+<head th:replace="~{fragments/head :: commonHead('Fundamental Analysis | ' + ${appTitle})}"></head>
+
+<style>
+    @media print {
+        /* Hide navigation and UI elements */
+        .header, 
+        .sidebar, 
+        .button-group, 
+        .button {
+            display: none !important;
+        }
+        
+        /* Remove "Fundamental Analysis" text (application/report name) from title */
+        .report-title span:not(:first-child) {
+            display: none !important;
+        }
+
+        /* Reset layout containers for full width */
+        .app-shell, .layout {
+            display: block !important;
+        }
+        .content {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        /* Force KPI (hero) section into a single row */
+        .analysis-hero {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-around !important;
+            padding: 15px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* Show analysis sections in 2 columns (2 per row) */
+        .analysis-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+        }
+
+        /* Ensure background colors for scores and tones are printed */
+        .analysis-hero, .analysis-card, .analysis-score {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            break-inside: avoid;
+        }
+    }
+</style>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <div class="report-title-row">
+                    <div>
+                        <h1 class="page-title report-title">                            
+                            <span>Fundamental Analysis</span>
+                        </h1>
+                        <div class="report-subtitle">
+                            <span th:text="${analysis.companyName ?: '-'}"></span> (<span th:text="${analysis.tradingCode}"></span>)
+                        </div>
+                        <div class="report-sector" th:text="${analysis.sector ?: '-'}"></div>
+                    </div>
+                    <div class="button-group">
+                        <a th:href="@{/company/{code}/report(code=${analysis.tradingCode})}" class="button">
+                            <i class="fa-solid fa-file-lines"></i> Report
+                        </a>
+                        <button onclick="window.print()" class="button button-success">
+                            <i class="fa-solid fa-print"></i> Print
+                        </button>
+                        <a th:href="@{/company/list}" class="button button-secondary">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+
+                <section class="analysis-hero" th:classappend="' analysis-' + ${analysis.overallTone}">
+                    <div>
+                        <span>Overall Decision</span>
+                        <strong th:text="${analysis.overallDecision}">Decision</strong>
+                    </div>
+                    <div>
+                        <span>Score</span>
+                        <strong th:text="${analysis.overallScore + '/100'}">0/100</strong>
+                    </div>
+                    <div>
+                        <span>Category</span>
+                        <strong th:text="${analysis.marketCategory ?: '-'}"></strong>
+                    </div>
+                    <div>
+                        <span>PE / LTP</span>
+                        <strong th:text="${(analysis.peRatio ?: '-') + ' / ' + (analysis.lastTradingPrice ?: '-')}"></strong>
+                    </div>
+                </section>
+
+                <section class="analysis-grid">
+                    <article class="analysis-card" th:each="section : ${analysis.sections}"
+                        th:classappend="' analysis-' + ${section.tone}">
+                        <div class="analysis-card-header">
+                            <div>
+                                <h2 th:text="${section.title}">Section</h2>
+                                <p th:text="${section.summary}">Summary</p>
+                            </div>
+                            <div class="analysis-score" th:text="${section.score + '/100'}">0/100</div>
+                        </div>
+
+                        <div class="analysis-block">
+                            <h3>Rough Calculations</h3>
+                            <ul>
+                                <li th:each="calculation : ${section.calculations}" th:text="${calculation}"></li>
+                            </ul>
+                        </div>
+
+                        <div class="analysis-block">
+                            <h3>Reasoning</h3>
+                            <ul>
+                                <li th:each="reason : ${section.reasons}" th:text="${reason}"></li>
+                            </ul>
+                        </div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

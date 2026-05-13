@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Register | Stock')}"></head>
+
+<body class="auth-page">
+    <main class="auth-box">
+        <div class="brand" th:text="${appTitle}">Stock Admin</div>
+        <section class="panel">
+            <div class="panel-header">Create account</div>
+            <div class="panel-body">
+                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+                <form th:action="@{/register}" th:object="${registerForm}" method="post">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input class="form-control" id="fullName" th:field="*{fullName}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input class="form-control" id="email" th:field="*{email}" type="text">
+                        <small class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"> </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input class="form-control" id="username" th:field="*{username}" autocomplete="username">
+                        <small class="text-danger" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input class="form-control" id="password" th:field="*{password}" type="password" autocomplete="new-password">
+                        <small class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                        </small>
+                    </div>
+                    <button class="button" type="submit">Register</button>
+                </form>
+                <p>Already approved? <a th:href="@{/login}">Login</a></p>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

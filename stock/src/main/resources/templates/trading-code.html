@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: commonHead('Trading Code | Stock')}"></head>
+
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <h1 class="page-title">Trading code</h1>
+
+                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+                <section class="panel">
+                    <div class="panel-header"
+                        th:text="${editTradingCode != null ? 'Edit Trading Code' : 'Save Trading Code'}"></div>
+                    <div class="panel-body">
+                        <form th:if="${editTradingCode == null}" th:action="@{/trading-code/save}" method="post"
+                            class="inline-form">
+                            <input class="form-control" name="code" placeholder="Enter Trading Code" required>
+                            <button class="button button-secondary" type="submit">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Save</span>
+                            </button>
+                        </form>
+                        <form th:if="${editTradingCode != null}"
+                            th:action="@{/trading-code/{id}/edit(id=${editTradingCode.id})}" method="post"
+                            class="inline-form">
+                            <input class="form-control" name="code" placeholder="Enter Trading Code"
+                                th:value="${editTradingCode.code}" required>
+                            <button class="button button-secondary" type="submit">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Update</span>
+                            </button>
+                            <a class="button" th:href="@{/trading-code}">Cancel</a>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header panel-header-actions">
+                        <span>Trading Code List</span>
+                        <form th:action="@{/trading-code/scrape-save-all}" method="post"
+                            onsubmit="return confirm('Scrape and save company data for all trading codes?');">
+                            <button class="button button-success" type="submit">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Scrape All
+                            </button>
+                        </form>
+                    </div>
+                    <div class="panel-body table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Trading Code</th>
+                                    <th>Creation Date</th>
+                                    <th>Created By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="row : ${tradingCodes}">
+                                    <td class="fw-bold" th:text="${row.code}"></td>
+                                    <td th:text="${row.creationDate != null ? #temporals.format(row.creationDate, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                                    <td th:text="${row.createdBy ?: '-'}"></td>
+                                    <td>
+                                        <div class="button-group">
+                                            <a class="button button-small"
+                                                th:href="@{/trading-code(editId=${row.id})}">
+                                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                                            </a>
+                                            <form th:action="@{/trading-code/{id}/scrape-save(id=${row.id})}" method="post">
+                                                <button class="button button-small button-success" type="submit">
+                                                    <i class="fa-solid fa-cloud-arrow-down"></i> Save Data
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/trading-code/{id}/delete(id=${row.id})}" method="post"
+                                                onsubmit="return confirm('Delete this trading code?');">
+                                                <button class="button button-small button-danger" type="submit">
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(tradingCodes)}">
+                                    <td colspan="4" style="text-align: center; padding: 2rem;">No trading codes found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>
