@@ -91,8 +91,11 @@ public class MarketScraperServcie {
                     form.setClosep(parseBigDecimal(cols.get(columnMap.get("CLOSEP")).text()));
 
                     form.setYcp(parseBigDecimal(cols.get(columnMap.get("YCP")).text()));
-                    form.setTrade(parseBigDecimal(cols.get(columnMap.get("TRADE")).text()));
+                    
+                    form.setTrade(parseLong(cols.get(columnMap.get("TRADE")).text()));
+                    
                     form.setTradeValue(parseBigDecimal(cols.get(columnMap.get("VALUE (mn)")).text()));
+                    
                     form.setVolume(parseLong(cols.get(columnMap.get("VOLUME")).text()));
 
                     forms.add(form);

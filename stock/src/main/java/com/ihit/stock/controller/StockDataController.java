@@ -1,12 +1,18 @@
 package com.ihit.stock.controller;
 
 import com.ihit.stock.dto.StockDataForm;
+import com.ihit.stock.model.StockMarketData;
 import com.ihit.stock.service.ExcelStockDataParser;
 import com.ihit.stock.service.StockMarketDataService;
 import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -69,9 +75,15 @@ public class StockDataController {
     }
 
     @GetMapping("/data")
-    public String savedData(Principal principal, Authentication authentication, Model model) {
+    public String savedData(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size, Principal principal, Authentication authentication,
+            Model model) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
 
-        model.addAttribute("stocks", stockMarketDataService.findAll());
+         Page<StockMarketData> stockPage = stockMarketDataService.findAll(pageable);
+        model.addAttribute("stockPage", stockPage);
+        model.addAttribute("stocks", stockPage.getContent());
+        // model.addAttribute("stocks", stockMarketDataService.findAll(pageable));
 
         return "stock-data";
     }

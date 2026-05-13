@@ -4,6 +4,9 @@ import com.ihit.stock.dto.StockDataForm;
 import com.ihit.stock.model.StockMarketData;
 import com.ihit.stock.repository.StockMarketDataRepository;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +30,9 @@ public class StockMarketDataService {
         return forms.size();
     }
 
-    public List<StockMarketData> findAll() {
-        return repository.findAllByOrderByDateDescTradingCodeAsc();
+    public Page<StockMarketData> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
+        // return repository.findAllByOrderByDateDescTradingCodeAsc(pageable);
     }
 
     public StockDataForm findForm(Long id) {
@@ -68,6 +72,7 @@ public class StockMarketDataService {
                 form.getOpenp(),
                 form.getClosep(),
                 form.getYcp(),
+                form.getTrade(),
                 form.getTradeValue(),
                 form.getVolume());
     }
@@ -83,6 +88,7 @@ public class StockMarketDataService {
         form.setOpenp(data.getOpenp());
         form.setClosep(data.getClosep());
         form.setYcp(data.getYcp());
+        form.setTrade(data.getTrade());
         form.setTradeValue(data.getTradeValue());
         form.setVolume(data.getVolume());
         return form;

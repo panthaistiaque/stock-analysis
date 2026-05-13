@@ -16,7 +16,7 @@ public class StockDataForm implements Serializable {
     private BigDecimal closep;
     private BigDecimal ycp;
     private BigDecimal tradeValue;
-    private BigDecimal trade;
+    private Long trade;
     private BigDecimal value;
     private Long volume;
 
@@ -100,11 +100,11 @@ public class StockDataForm implements Serializable {
         this.tradeValue = tradeValue;
     }
 
-    public BigDecimal getTrade() {
+    public Long getTrade() {
         return trade;
     }
 
-    public void setTrade(BigDecimal trade) {
+    public void setTrade(Long trade) {
         this.trade = trade;
     }
 

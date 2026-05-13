@@ -1,76 +1,108 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: commonHead('Market Information | Stock')}"></head>
+
 <head th:replace="~{fragments/head :: commonHead('Market Information | ' + ${appTitle})}"></head>
+
 <body>
-<div class="app-shell">
-    <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
-    <div class="layout">
-        <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
-        <main class="content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="page-title mb-0">Market Information</h1>
-                <a th:href="@{/stocks/upload}" class="button">
-                    <i class="fa-solid fa-file-import me-1"></i> Upload Excel
-                </a>
-            </div>
-
-            <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
-            <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
-
-            <!-- Delete Panel -->
-            <section class="panel">
-                <div class="panel-header">Bulk Actions</div>
-                <div class="panel-body">
-                    <form th:action="@{/stocks/delete-by-code}" method="post" class="inline-form" 
-                          onsubmit="return confirm('Are you sure you want to delete all records for this code?');">
-                        <input class="form-control" name="tradingCode" placeholder="Enter Trading Code to delete" required>
-                        <button class="button button-danger" type="submit">Delete All Records</button>
-                    </form>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="page-title mb-0">Market Information</h1>
+                    <a th:href="@{/stocks/upload}" class="button">
+                        <i class="fa-solid fa-file-import me-1"></i> Upload Excel
+                    </a>
                 </div>
-            </section>
 
-            <!-- Records Panel -->
-            <section class="panel">
-                <div class="panel-header">Market Data Records</div>
-                <div class="panel-body table-wrap">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>DATE</th>
-                                <th>TRADING CODE</th>
-                                <th>LTP</th>
-                                <th>HIGH</th>
-                                <th>LOW</th>
-                                <th>CLOSEP</th>
-                                <th>VOLUME</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="stock : ${stocks}">
-                                <td th:text="${stock.date}"></td>
-                                <td class="fw-bold" th:text="${stock.tradingCode}"></td>
-                                <td th:text="${stock.ltp}"></td>
-                                <td th:text="${stock.high}"></td>
-                                <td th:text="${stock.low}"></td>
-                                <td th:text="${stock.closep}"></td>
-                                <td th:text="${#numbers.formatInteger(stock.volume, 0, 'COMMA')}"></td>
-                                <td>
-                                    <a class="button button-small" th:href="@{/stocks/{id}/edit(id=${stock.id})}">
-                                        <i class="fa-solid fa-pen-to-square"></i> Edit
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(stocks)}">
-                                <td colspan="8" style="text-align: center; padding: 2rem;">No stock data records found.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
+                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+                <!-- Delete Panel -->
+                <section class="panel">
+                    <div class="panel-header">Bulk Actions</div>
+                    <div class="panel-body">
+                        <form th:action="@{/stocks/delete-by-code}" method="post" class="inline-form"
+                            onsubmit="return confirm('Are you sure you want to delete all records for this code?');">
+                            <input class="form-control" name="tradingCode" placeholder="Enter Trading Code to delete"
+                                required>
+                            <button class="button button-danger" type="submit">Delete All Records</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Records Panel -->
+                <section class="panel">
+                    <div class="panel-header">Market Data Records</div>
+
+                    <div class="panel-body table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>DATE</th>
+                                    <th>TRADING CODE</th>
+                                    <th>LTP*</th>
+                                    <th>HIGH</th>
+                                    <th>LOW</th>
+                                    <th>OPENP*</th>
+                                    <th>CLOSEP*</th>
+                                    <th>YCP</th>
+                                    <th>TRADE</th>
+                                    <th>VALUE (mn)</th>
+                                    <th>VOLUME</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:each="stock : ${stocks}">
+                                    <td th:text="${stock.date}"></td>
+
+                                    <td class="fw-bold" th:text="${stock.tradingCode}">
+                                    </td>
+
+                                    <td th:text="${stock.ltp}"></td>
+
+                                    <td th:text="${stock.high}"></td>
+
+                                    <td th:text="${stock.low}"></td>
+
+                                    <td th:text="${stock.openp}"></td>
+
+                                    <td th:text="${stock.closep}"></td>
+
+                                    <td th:text="${stock.ycp}"></td>
+
+                                    <td th:text="${#numbers.formatInteger(stock.trade, 0, 'COMMA')}"></td>
+
+                                    <td th:text="${stock.tradeValue}"></td>
+
+                                    <td th:text="${#numbers.formatInteger(stock.volume, 0, 'COMMA')}"></td>
+
+                                    <td>
+                                        <a class="button button-small" th:href="@{/stocks/{id}/edit(id=${stock.id})}">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                            Edit
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(stocks)}">
+                                    <td colspan="12" style="text-align: center; padding: 2rem;">
+                                        No stock data records found.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    
+                    <div th:replace="~{fragments/pagination :: pagination(${stockPage}, '/stocks/data')}"></div>
+                </section>
+            </main>
+        </div>
     </div>
-</div>
 </body>
+
 </html>
