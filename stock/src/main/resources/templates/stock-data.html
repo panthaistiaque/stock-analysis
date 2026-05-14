@@ -4,6 +4,99 @@
 <head th:replace="~{fragments/head :: commonHead('Market Information | Stock')}"></head>
 
 <head th:replace="~{fragments/head :: commonHead('Market Information | ' + ${appTitle})}"></head>
+<style>
+    .dropdown-wrapper {
+        position: relative;
+    }
+
+    .dropdown-menu-custom {
+        position: absolute;
+        top: 45px;
+        right: 0;
+
+        min-width: 320px;
+
+        background: #fff;
+
+        border: 1px solid #d9e2ec;
+        border-radius: 6px;
+
+        padding: 18px;
+
+        box-shadow: 0 6px 16px rgba(15, 23, 42, .12);
+
+        display: none;
+
+        z-index: 500;
+    }
+
+    .dropdown-menu-custom.show {
+        display: block;
+    }
+
+    .dropdown-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .dropdown-note {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #dc2626;
+    }
+
+    .dropdown-group {
+        margin-bottom: 14px;
+    }
+
+    .dropdown-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+</style>
+<style>
+    .records-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .records-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .active-filters {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .filter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        background: #eef3ff;
+        color: #3451b2;
+        border: 1px solid #d8e2ff;
+        border-radius: 999px;
+        font-size: 13px;        
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .filter-badge strong {
+        font-weight: 600;
+    }
+</style>
 
 <body>
     <div class="app-shell">
@@ -11,45 +104,144 @@
         <div class="layout">
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="page-title mb-0">Market Information</h1>
-                    <a th:href="@{/stocks/upload}" class="button">
-                        <i class="fa-solid fa-file-import me-1"></i> Upload Excel
-                    </a>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h1 class="page-title mb-0">
+                        Market Information
+                    </h1>
+
+                    <div class="d-flex gap-2">
+
+                        <a th:href="@{/stocks/upload}" class="button">
+                            <i class="fa-solid fa-file-import me-1"></i>
+                            Upload Excel
+                        </a>
+
+                        <!-- Bulk Action Here -->
+                        <div class="dropdown-wrapper" style="float: right;">
+
+                            <button type="button" class="button button-danger" onclick="toggleDropdown('bulkMenu')">
+
+                                <i class="fa-solid fa-trash"></i>
+                                Actions
+
+                            </button>
+
+                            <div id="bulkMenu" class="dropdown-menu-custom">
+
+                                <div class="dropdown-header">
+                                    Bulk Actions
+                                </div>
+
+                                <form th:action="@{/stocks/delete-by-code}" method="post">
+
+                                    <div class="dropdown-group">
+
+                                        <input type="text" class="form-control" name="tradingCode"
+                                            placeholder="Trading Code">
+
+                                    </div>
+
+                                    <button type="submit" class="button button-danger" style="width:100%;">
+
+                                        Delete All Records
+
+                                    </button>
+
+                                </form>
+
+                                <div class="dropdown-footer">
+                                    This action cannot be undone.
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- Filter Button -->
+                        <div class="dropdown-wrapper" style="float: right; margin-left: 5px; margin-right: 5px;">
+
+                            <button type="button" class="button button-secondary"
+                                onclick="toggleDropdown('filterMenu')">
+
+                                <i class="fa-solid fa-filter"></i>
+                                Filter
+
+                            </button>
+
+                            <div id="filterMenu" class="dropdown-menu-custom">
+
+                                <div class="dropdown-header">
+                                    Filter Market Data
+                                </div>
+
+                                <form method="get" th:action="@{/stocks/data}">
+
+                                    <div class="dropdown-group">
+                                        <input class="form-control" type="text" name="tradingCode"
+                                            th:value="${tradingCode}" placeholder="Trading Code">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <input class="form-control date-picker flatpickr-input" type="date"
+                                            name="fromDate" th:value="${fromDate}" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <input class="form-control date-picker flatpickr-input" type="date"
+                                            name="toDate" th:value="${toDate}" placeholder="YYYY-MM-DD">
+                                    </div>
+
+                                    <div class="dropdown-actions">
+                                        <button class="button button-secondary" type="submit"> Apply Filter </button>
+                                        <a th:href="@{/stocks/data}" class="button"> Clear </a>
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
                 <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
 
-                <!-- Delete Panel -->
-                <section class="panel">
-                    <div class="panel-header">Bulk Actions</div>
-                    <div class="panel-body">
-                        <form th:action="@{/stocks/delete-by-code}" method="post" class="inline-form"
-                            onsubmit="return confirm('Are you sure you want to delete all records for this code?');">
-                            <input class="form-control" name="tradingCode" placeholder="Enter Trading Code to delete"
-                                required>
-                            <button class="button button-danger" type="submit">Delete All Records</button>
-                        </form>
-                    </div>
-                </section>
-                <section class="panel">
-                    <div class="panel-header">Filter Data</div>
-                    <div class="panel-body">
-                        <form method="get" th:action="@{/stocks/data}" class="inline-form">
-                            <input class="form-control" type="text" name="tradingCode" th:value="${tradingCode}" placeholder="Trading Code">
-                            <input class="form-control date-picker flatpickr-input" type="date" name="fromDate" th:value="${fromDate}"  placeholder="YYYY-MM-DD">
-                            <input  class="form-control date-picker flatpickr-input" type="date" name="toDate" th:value="${toDate}"  placeholder="YYYY-MM-DD">
-                            <button class="button button-secondary" type="submit" >Filter</button>
-                            <a th:href="@{/stocks/data}" class="button">Clear</a>
-                        </form>
-
-                    </div>
-                </section>
-
                 <!-- Records Panel -->
                 <section class="panel">
-                    <div class="panel-header">Market Data Records</div>
+                    <!-- <div class="panel-header">Market Data Records</div> -->
+                    <div class="panel-header records-header">
+
+                        <div class="records-title">
+                            Market Data Records
+                        </div>
+
+                        <div class="active-filters">
+
+                            <span th:if="${tradingCode != null and !#strings.isEmpty(tradingCode)}"
+                                class="filter-badge">
+
+                                Code:
+                                <strong th:text="${tradingCode}"></strong>
+
+                            </span>
+
+                            <span th:if="${fromDate != null}" class="filter-badge">
+
+                                From:
+                                <strong th:text="${fromDate}"></strong>
+
+                            </span>
+
+                            <span th:if="${toDate != null}" class="filter-badge">
+
+                                To:
+                                <strong th:text="${toDate}"></strong>
+
+                            </span>
+
+                        </div>
+
+                    </div>
 
                     <div class="panel-body table-wrap">
                         <table class="table">
@@ -116,6 +308,44 @@
             </main>
         </div>
     </div>
+    <script>
+
+        function toggleDropdown(id) {
+
+            document
+                .querySelectorAll('.dropdown-menu-custom')
+                .forEach(menu => {
+
+                    if (menu.id !== id) {
+                        menu.classList.remove('show');
+                    }
+                });
+
+            document
+                .getElementById(id)
+                .classList
+                .toggle('show');
+        }
+
+        // outside click close
+        document.addEventListener('click', function (event) {
+
+            document
+                .querySelectorAll('.dropdown-wrapper')
+                .forEach(wrapper => {
+
+                    if (!wrapper.contains(event.target)) {
+
+                        wrapper
+                            .querySelector('.dropdown-menu-custom')
+                            ?.classList
+                            .remove('show');
+                    }
+                });
+        });
+
+    </script>
+
     <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>
 

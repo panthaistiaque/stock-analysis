@@ -1,72 +1,72 @@
 <div th:fragment="pagination(pageData, pageUrl)">
+    <th:block th:if="${pageData.hasContent()}">
+        <div class="pagination-wrapper">
 
-    <div class="pagination-wrapper">
+            <!-- Pagination -->
+            <div class="pagination-container">
 
-        <!-- Pagination -->
-        <div class="pagination-container">
+                <!-- Previous -->
+                <a th:if="${pageData.hasPrevious()}"
+                    th:href="@{${pageUrl}(page=${pageData.number - 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
+                    Previous
+                </a>
 
-            <!-- Previous -->
-            <a th:if="${pageData.hasPrevious()}"
-                th:href="@{${pageUrl}(page=${pageData.number - 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
-                Previous
-            </a>
+                <!-- First Page -->
+                <a th:if="${pageData.number > 2}"
+                    th:href="@{${pageUrl}(page=0, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
+                    1
+                </a>
 
-            <!-- First Page -->
-            <a th:if="${pageData.number > 2}" 
-               th:href="@{${pageUrl}(page=0, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
-                1
-            </a>
+                <!-- Leading dots -->
+                <span th:if="${pageData.number > 3}" class="pagination-dots"> ... </span>
 
-            <!-- Leading dots -->
-            <span th:if="${pageData.number > 3}" class="pagination-dots"> ... </span>
-
-            <!-- Middle Pages -->
-            <th:block th:each="i : ${#numbers.sequence(
+                <!-- Middle Pages -->
+                <th:block th:each="i : ${#numbers.sequence(
                 T(java.lang.Math).max(0, pageData.number - 2),
                 T(java.lang.Math).min(pageData.totalPages - 1, pageData.number + 2)
             )}">
 
-                <a th:if="${i != pageData.number}" 
-                   th:href="@{${pageUrl}(page=${i}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}"
-                    th:text="${i + 1}"></a>
+                    <a th:if="${i != pageData.number}"
+                        th:href="@{${pageUrl}(page=${i}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}"
+                        th:text="${i + 1}"></a>
 
-                <span th:if="${i == pageData.number}" class="active-page" th:text="${i + 1}"> </span>
+                    <span th:if="${i == pageData.number}" class="active-page" th:text="${i + 1}"> </span>
 
-            </th:block>
+                </th:block>
 
-            <!-- Trailing dots -->
-            <span th:if="${pageData.number + 3 < pageData.totalPages - 1}" class="pagination-dots">
-                ...
-            </span>
+                <!-- Trailing dots -->
+                <span th:if="${pageData.number + 3 < pageData.totalPages - 1}" class="pagination-dots">
+                    ...
+                </span>
 
-            <!-- Last Page -->
-            <a th:if="${pageData.number + 2 < pageData.totalPages - 1}"
-                th:href="@{${pageUrl}(page=${pageData.totalPages - 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}"
-                th:text="${pageData.totalPages}">
-            </a>
+                <!-- Last Page -->
+                <a th:if="${pageData.number + 2 < pageData.totalPages - 1}"
+                    th:href="@{${pageUrl}(page=${pageData.totalPages - 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}"
+                    th:text="${pageData.totalPages}">
+                </a>
 
-            <!-- Next -->
-            <a th:if="${pageData.hasNext()}"
-                th:href="@{${pageUrl}(page=${pageData.number + 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
-                Next
-            </a>
+                <!-- Next -->
+                <a th:if="${pageData.hasNext()}"
+                    th:href="@{${pageUrl}(page=${pageData.number + 1}, size=${pageData.size}, tradingCode=${tradingCode}, fromDate=${fromDate}, toDate=${toDate})}">
+                    Next
+                </a>
+
+            </div>
+
+            <!-- Page Size -->
+            <div class="page-size-control">
+                <label>Rows:</label>
+                <select onchange="changePageSize(this.value)">
+                    <option value="10" th:selected="${pageData.size == 10}"> 10 </option>
+                    <option value="20" th:selected="${pageData.size == 20}"> 20 </option>
+                    <option value="30" th:selected="${pageData.size == 30}"> 30 </option>
+                    <option value="50" th:selected="${pageData.size == 50}"> 50 </option>
+                    <option value="100" th:selected="${pageData.size == 100}"> 100 </option>
+                </select>
+            </div>
 
         </div>
-
-        <!-- Page Size -->
-        <div class="page-size-control">
-            <label>Rows:</label>
-            <select onchange="changePageSize(this.value)">
-                <option value="10" th:selected="${pageData.size == 10}"> 10 </option>
-                <option value="20" th:selected="${pageData.size == 20}"> 20 </option>
-                <option value="30" th:selected="${pageData.size == 30}"> 30 </option>
-                <option value="50" th:selected="${pageData.size == 50}"> 50 </option>
-                <option value="100" th:selected="${pageData.size == 100}"> 100 </option>
-            </select>
-        </div>
-
-    </div>
-
+    </th:block>
     <script th:inline="javascript">
         function changePageSize(size) {
             const urlParams = new URLSearchParams(window.location.search);
