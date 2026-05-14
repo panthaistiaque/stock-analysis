@@ -3,6 +3,8 @@ package com.ihit.stock.service;
 import com.ihit.stock.dto.StockDataForm;
 import com.ihit.stock.model.StockMarketData;
 import com.ihit.stock.repository.StockMarketDataRepository;
+
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -30,9 +32,12 @@ public class StockMarketDataService {
         return forms.size();
     }
 
-    public Page<StockMarketData> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-        // return repository.findAllByOrderByDateDescTradingCodeAsc(pageable);
+    public Page<StockMarketData> findAll(String tradingCode, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+            throw new IllegalArgumentException("From Date cannot be after To Date.");
+        }
+
+        return repository.findWithFilters(tradingCode, fromDate, toDate, pageable);
     }
 
     public StockDataForm findForm(Long id) {

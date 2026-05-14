@@ -33,6 +33,19 @@
                         </form>
                     </div>
                 </section>
+                <section class="panel">
+                    <div class="panel-header">Filter Data</div>
+                    <div class="panel-body">
+                        <form method="get" th:action="@{/stocks/data}" class="inline-form">
+                            <input class="form-control" type="text" name="tradingCode" th:value="${tradingCode}" placeholder="Trading Code">
+                            <input class="form-control date-picker flatpickr-input" type="date" name="fromDate" th:value="${fromDate}"  placeholder="YYYY-MM-DD">
+                            <input  class="form-control date-picker flatpickr-input" type="date" name="toDate" th:value="${toDate}"  placeholder="YYYY-MM-DD">
+                            <button class="button button-secondary" type="submit" >Filter</button>
+                            <a th:href="@{/stocks/data}" class="button">Clear</a>
+                        </form>
+
+                    </div>
+                </section>
 
                 <!-- Records Panel -->
                 <section class="panel">
@@ -97,12 +110,13 @@
                                 </tr>
                             </tbody>
                         </table>
-                    
-                    <div th:replace="~{fragments/pagination :: pagination(${stockPage}, '/stocks/data')}"></div>
+
+                        <div th:replace="~{fragments/pagination :: pagination(${stockPage}, '/stocks/data')}"></div>
                 </section>
             </main>
         </div>
     </div>
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>
 
 </html>

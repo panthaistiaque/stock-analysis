@@ -104,43 +104,14 @@ public class MarketScraperServcie {
                     System.out.println("Row parsing failed: " + row.text());
                     System.out.println(rowEx.getMessage());
                 }
-                if (!forms.isEmpty()) {
-                    stockMarketDataService.saveOrReplaceAll(forms);
-                    System.out.println("Saved rows: " + forms.size());
-                } else {
-                    System.out.println("No historical data found for " + tradingCode);
-                }
             }
-            /*
-             * List<StockDataForm> forms = new ArrayList<>();
-             * DateTimeFormatter dseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-             * 
-             * for (Element row : rows) {
-             * Elements cols = row.select("td");
-             * if (cols.size() < 12) continue; // Skip header or incomplete rows
-             * 
-             * try {
-             * StockDataForm form = new StockDataForm();
-             * form.setDate(LocalDate.parse(cols.get(1).text().trim(), dseFormatter));
-             * form.setTradingCode(cols.get(2).text().trim());
-             * form.setLtp(parseBigDecimal(cols.get(3).text()));
-             * form.setHigh(parseBigDecimal(cols.get(4).text()));
-             * form.setLow(parseBigDecimal(cols.get(5).text()));
-             * form.setOpenp(parseBigDecimal(cols.get(6).text()));
-             * form.setClosep(parseBigDecimal(cols.get(7).text()));
-             * form.setYcp(parseBigDecimal(cols.get(8).text()));
-             * form.setTradeValue(parseBigDecimal(cols.get(10).text()));
-             * form.setVolume(parseLong(cols.get(11).text()));
-             * forms.add(form);
-             * } catch (Exception e) {
-             * // Skip rows that fail to parse (like headers with text in numeric columns)
-             * }
-             * }
-             * 
-             * if (!forms.isEmpty()) {
-             * stockMarketDataService.saveOrReplaceAll(forms);
-             * }
-             */
+
+            if (!forms.isEmpty()) {
+                stockMarketDataService.saveOrReplaceAll(forms);
+                System.out.println("Saved rows: " + forms.size());
+            } else {
+                System.out.println("No historical data found for " + tradingCode);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Historical scraping failed for " + tradingCode + ": " + e.getMessage(), e);
         }
