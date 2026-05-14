@@ -5,56 +5,17 @@
 
 <head th:replace="~{fragments/head :: commonHead('Market Information | ' + ${appTitle})}"></head>
 <style>
-    .dropdown-wrapper {
-        position: relative;
-    }
-
-    .dropdown-menu-custom {
-        position: absolute;
-        top: 45px;
-        right: 0;
-
-        min-width: 320px;
-
-        background: #fff;
-
-        border: 1px solid #d9e2ec;
-        border-radius: 6px;
-
-        padding: 18px;
-
-        box-shadow: 0 6px 16px rgba(15, 23, 42, .12);
-
-        display: none;
-
-        z-index: 500;
-    }
-
-    .dropdown-menu-custom.show {
-        display: block;
-    }
-
-    .dropdown-title {
+    /* .dropdown-header {
         font-size: 18px;
         font-weight: 700;
         margin-bottom: 15px;
     }
 
-    .dropdown-note {
+    .dropdown-footer {
         margin-top: 10px;
         font-size: 13px;
-        color: #dc2626;
-    }
-
-    .dropdown-group {
-        margin-bottom: 14px;
-    }
-
-    .dropdown-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-    }
+        color: #dc3545;
+    } */
 </style>
 <style>
     .records-header {
@@ -88,7 +49,7 @@
         color: #3451b2;
         border: 1px solid #d8e2ff;
         border-radius: 999px;
-        font-size: 13px;        
+        font-size: 13px;
         line-height: 1.2;
         white-space: nowrap;
     }
@@ -98,19 +59,27 @@
     }
 </style>
 
+
 <body>
     <div class="app-shell">
         <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
         <div class="layout">
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="page-title-custom">
+                            Market Information
+                        </div>
+                    </div>
+                    <div class="top-bar-right">
 
-                    <h1 class="page-title mb-0">
-                        Market Information
-                    </h1>
-
-                    <div class="d-flex gap-2">
+                        <form th:action="@{/stocks/sync-today}" method="post" style="display: inline;">
+                            <button type="submit" class="button button-success">
+                                <i class="fa-solid fa-cloud-arrow-down me-1"></i>
+                                Global Sync
+                            </button>
+                        </form>
 
                         <a th:href="@{/stocks/upload}" class="button">
                             <i class="fa-solid fa-file-import me-1"></i>
@@ -118,27 +87,29 @@
                         </a>
 
                         <!-- Bulk Action Here -->
-                        <div class="dropdown-wrapper" style="float: right;">
+                        <div class="dropdown-wrapper" >
 
                             <button type="button" class="button button-danger" onclick="toggleDropdown('bulkMenu')">
 
                                 <i class="fa-solid fa-trash"></i>
-                                Actions
-
+                                Delete
                             </button>
 
                             <div id="bulkMenu" class="dropdown-menu-custom">
 
-                                <div class="dropdown-header">
-                                    Bulk Actions
+                                <div class="dropdown-title">
+                                    Delete Records by Trading Code
                                 </div>
 
                                 <form th:action="@{/stocks/delete-by-code}" method="post">
 
                                     <div class="dropdown-group">
 
-                                        <input type="text" class="form-control" name="tradingCode"
-                                            placeholder="Trading Code">
+                                        <input type="text" class="form-control" name="tradingCode" autocomplete="off"
+                                            placeholder="Trading Code" list="tradingCodeList">
+                                        <datalist id="tradingCodeList">
+                                            <option th:each="code : ${tradingCodes}" th:value="${code}"></option>
+                                        </datalist>
 
                                     </div>
 
@@ -150,7 +121,8 @@
 
                                 </form>
 
-                                <div class="dropdown-footer">
+                                <div class="dropdown-note">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
                                     This action cannot be undone.
                                 </div>
 
@@ -158,7 +130,7 @@
 
                         </div>
                         <!-- Filter Button -->
-                        <div class="dropdown-wrapper" style="float: right; margin-left: 5px; margin-right: 5px;">
+                        <div class="dropdown-wrapper" >
 
                             <button type="button" class="button button-secondary"
                                 onclick="toggleDropdown('filterMenu')">
@@ -170,7 +142,7 @@
 
                             <div id="filterMenu" class="dropdown-menu-custom">
 
-                                <div class="dropdown-header">
+                                <div class="dropdown-title">
                                     Filter Market Data
                                 </div>
 
@@ -178,7 +150,7 @@
 
                                     <div class="dropdown-group">
                                         <input class="form-control" type="text" name="tradingCode"
-                                            th:value="${tradingCode}" placeholder="Trading Code">
+                                            th:value="${tradingCode}" placeholder="Trading Code" list="tradingCodeList">
                                     </div>
                                     <div class="dropdown-group">
                                         <input class="form-control date-picker flatpickr-input" type="date"
@@ -203,8 +175,6 @@
 
                 </div>
 
-                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
-                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
 
                 <!-- Records Panel -->
                 <section class="panel">
@@ -212,7 +182,7 @@
                     <div class="panel-header records-header">
 
                         <div class="records-title">
-                            Market Data Records
+                            Market Information
                         </div>
 
                         <div class="active-filters">
@@ -308,43 +278,6 @@
             </main>
         </div>
     </div>
-    <script>
-
-        function toggleDropdown(id) {
-
-            document
-                .querySelectorAll('.dropdown-menu-custom')
-                .forEach(menu => {
-
-                    if (menu.id !== id) {
-                        menu.classList.remove('show');
-                    }
-                });
-
-            document
-                .getElementById(id)
-                .classList
-                .toggle('show');
-        }
-
-        // outside click close
-        document.addEventListener('click', function (event) {
-
-            document
-                .querySelectorAll('.dropdown-wrapper')
-                .forEach(wrapper => {
-
-                    if (!wrapper.contains(event.target)) {
-
-                        wrapper
-                            .querySelector('.dropdown-menu-custom')
-                            ?.classList
-                            .remove('show');
-                    }
-                });
-        });
-
-    </script>
 
     <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>

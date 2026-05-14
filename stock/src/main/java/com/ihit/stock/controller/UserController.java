@@ -3,6 +3,8 @@ package com.ihit.stock.controller;
 import com.ihit.stock.dto.PasswordChangeForm;
 import com.ihit.stock.dto.ProfileForm;
 import com.ihit.stock.service.AppUserService;
+import com.ihit.stock.util.AppConstants;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
@@ -45,9 +47,9 @@ public class UserController {
                                 RedirectAttributes redirectAttributes) {
         try {
             userService.updateProfile(principal.getName(), profileForm);
-            redirectAttributes.addFlashAttribute("profileSuccess", "Profile updated.");
+            redirectAttributes.addFlashAttribute(AppConstants.SUCCESS, "Profile updated.");
         } catch (IllegalArgumentException exception) {
-            redirectAttributes.addFlashAttribute("profileError", exception.getMessage());
+            redirectAttributes.addFlashAttribute(AppConstants.ERROR, exception.getMessage());
         }
         return "redirect:/user/profile";
     }
@@ -61,7 +63,7 @@ public class UserController {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
             return "redirect:/login?passwordChanged";
         } catch (IllegalArgumentException exception) {
-            redirectAttributes.addFlashAttribute("passwordError", exception.getMessage());
+            redirectAttributes.addFlashAttribute(AppConstants.ERROR, exception.getMessage());
         }
         return "redirect:/user/password";
     }

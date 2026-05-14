@@ -1,0 +1,152 @@
+<!-- fragments/alert.html -->
+
+<th:block th:fragment="floatingAlert(success, error)">
+    <style>
+        .floating-alert {
+            position: fixed;
+
+            top: 20px;
+            right: 20px;
+
+            min-width: 320px;
+            max-width: 420px;
+
+            padding: 14px 16px;
+
+            border-radius: 10px;
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, .15);
+
+            z-index: 99999;
+
+            animation: slideIn .3s ease;
+        }
+
+        .alert-success-custom {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 5px solid #22c55e;
+        }
+
+        .alert-error-custom {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 5px solid #ef4444;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-close {
+            border: none;
+            background: transparent;
+
+            cursor: pointer;
+
+            font-size: 18px;
+
+            color: inherit;
+        }
+
+        @keyframes slideIn {
+
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateX(40px);
+            transition: .4s ease;
+        }
+    </style>
+
+    <div th:if="${success}" class="floating-alert alert-success-custom auto-close-alert">
+
+        <div class="alert-content">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+            <span th:text="${success}"></span>
+
+        </div>
+
+        <button type="button" class="alert-close" onclick="closeAlert(this)">
+
+            &times;
+
+        </button>
+
+    </div>
+
+    <div th:if="${error}" class="floating-alert alert-error-custom auto-close-alert">
+
+        <div class="alert-content">
+
+            <i class="fa-solid fa-circle-exclamation"></i>
+
+            <span th:text="${error}"></span>
+
+        </div>
+
+        <button type="button" class="alert-close" onclick="closeAlert(this)">
+
+            &times;
+
+        </button>
+
+    </div>
+    <script>
+
+        function closeAlert(button) {
+
+            const alert = button.closest('.floating-alert');
+
+            alert.classList.add('fade-out');
+
+            setTimeout(() => {
+                alert.remove();
+            }, 400);
+        }
+
+        // auto close after 10 sec
+        window.addEventListener('DOMContentLoaded', () => {
+
+            document
+                .querySelectorAll('.auto-close-alert')
+                .forEach(alert => {
+
+                    setTimeout(() => {
+
+                        alert.classList.add('fade-out');
+
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 400);
+
+                    }, 10000);
+                });
+        });
+
+    </script>
+</th:block>

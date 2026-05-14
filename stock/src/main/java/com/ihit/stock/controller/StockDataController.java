@@ -4,11 +4,13 @@ import com.ihit.stock.dto.StockDataForm;
 import com.ihit.stock.model.StockMarketData;
 import com.ihit.stock.service.ExcelStockDataParser;
 import com.ihit.stock.service.StockMarketDataService;
+import com.ihit.stock.service.TradingCodeService;
 import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Value;
 
 @Controller
 @RequestMapping("/stocks")
@@ -35,10 +38,16 @@ public class StockDataController {
 
     private final ExcelStockDataParser parser;
     private final StockMarketDataService stockMarketDataService;
+    private final TradingCodeService tradingCodeService;
 
-    public StockDataController(ExcelStockDataParser parser, StockMarketDataService stockMarketDataService) {
+    @Value("${app.sync.start-hour:18}")
+    private int syncStartHour;
+
+    public StockDataController(ExcelStockDataParser parser, StockMarketDataService stockMarketDataService,
+            TradingCodeService tradingCodeService) {
         this.parser = parser;
         this.stockMarketDataService = stockMarketDataService;
+        this.tradingCodeService = tradingCodeService;
     }
 
     @GetMapping("/upload")
@@ -76,6 +85,18 @@ public class StockDataController {
         return "redirect:/stocks/data";
     }
 
+    @PostMapping("/sync-today")
+    public String syncTodayMarket(Principal principal, RedirectAttributes redirectAttributes) {
+        try {
+            String username = principal != null ? principal.getName() : null;
+            String message = tradingCodeService.scrapeAndSaveAll(username);
+            redirectAttributes.addFlashAttribute("success", message);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Sync failed: " + e.getMessage());
+        }
+        return "redirect:/stocks/data";
+    }
+
     @GetMapping("/data")
     public String savedData(
             @RequestParam(required = false) String tradingCode,
@@ -85,7 +106,8 @@ public class StockDataController {
             @RequestParam(defaultValue = "20") int size,
             Principal principal, Authentication authentication,
             Model model) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("tradingCode").ascending().and(Sort.by("date").descending()));
 
         // Default current date if null
         if (fromDate == null) {
@@ -109,6 +131,7 @@ public class StockDataController {
         model.addAttribute("tradingCode", tradingCode);
         model.addAttribute("fromDate", fromDate);
         model.addAttribute("toDate", toDate);
+        model.addAttribute( "tradingCodes", tradingCodeService.getAllTradingCodes());
 
         return "stock-data";
     }

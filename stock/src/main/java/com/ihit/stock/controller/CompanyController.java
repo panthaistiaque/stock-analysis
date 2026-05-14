@@ -104,7 +104,7 @@ public class CompanyController {
             CompanyFundamentalDto company = scraperService.scrapeCompany(tradingCode.toUpperCase().trim());
             model.addAttribute("company", company);
         } catch (Exception e) {
-            model.addAttribute("scrapeError", e.getMessage());
+            model.addAttribute("error", e.getMessage());
         }
         return "company";
     }
@@ -114,7 +114,7 @@ public class CompanyController {
             RedirectAttributes redirectAttributes, Principal principal) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("company", company);
-            model.addAttribute("saveError", "Please review the numeric fields and try saving again.");
+            model.addAttribute("error", "Please review the numeric fields and try saving again.");
             return "company";
         }
 
@@ -126,7 +126,7 @@ public class CompanyController {
             return "redirect:/company/company-by-code?tradingCode=" + savedCompany.getTradingCode();
         } catch (Exception e) {
             model.addAttribute("company", company);
-            model.addAttribute("saveError", e.getMessage());
+            model.addAttribute("error", e.getMessage());
             return "company";
         }
     }

@@ -16,8 +16,6 @@
             <section class="panel">
                 <div class="panel-header">Profile Information</div>
                 <div class="panel-body">
-                    <div class="alert alert-success" th:if="${profileSuccess}" th:text="${profileSuccess}"></div>
-                    <div class="alert alert-error" th:if="${profileError}" th:text="${profileError}"></div>
                     <form th:action="@{/user/profile}" th:object="${profileForm}" method="post">
                         <div class="form-grid">
                             <div class="form-group">

@@ -27,9 +27,6 @@
                 <section class="panel">
                     <div class="panel-header">Company Information Review</div>
                     <div class="panel-body">
-                        <div class="alert alert-error" th:if="${scrapeError}" th:text="${scrapeError}"></div>
-                        <div class="alert alert-error" th:if="${saveError}" th:text="${saveError}"></div>
-                        <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
 
                         <div th:if="${company}">
                             <form th:action="@{/company/save}" th:object="${company}" method="post">

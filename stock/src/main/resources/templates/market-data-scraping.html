@@ -10,17 +10,14 @@
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
                 <h1 class="page-title">Market Data Scraping</h1>
-
-                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
-                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
-
                 <section class="panel">
                     <div class="panel-header">Full Market Data Sync</div>
                     <div class="panel-body">
-                        <p>Automatically update current session data (LTP, Volume, High/Low) for all registered trading codes. 
-                           This background process keeps your entire watchlist synchronized with the live market.</p>
-                        <form th:action="@{/trading-code/scrape-save-all}" method="post" 
-                              onsubmit="return confirm('Initiate full market scraping? This may take several minutes.');">
+                        <p>Automatically update current session data (LTP, Volume, High/Low) for all registered trading
+                            codes.
+                            This background process keeps your entire watchlist synchronized with the live market.</p>
+                        <form th:action="@{/trading-code/scrape-save-all}" method="post"
+                            onsubmit="return confirm('Initiate full market scraping? This may take several minutes.');">
                             <button type="submit" class="button button-success">
                                 <i class="fa-solid fa-cloud-arrow-down"></i> Global Sync
                             </button>
@@ -63,4 +60,5 @@
     </div>
     <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>
+
 </html>

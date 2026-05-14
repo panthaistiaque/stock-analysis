@@ -2,6 +2,88 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/head :: commonHead('Trading Code | Stock')}"></head>
+<style>
+    .custom-modal {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(15, 23, 42, .45);
+
+        display: none;
+
+        align-items: center;
+        justify-content: center;
+
+        z-index: 99999;
+    }
+
+    .custom-modal.show {
+        display: flex;
+    }
+
+    .custom-modal-content {
+        width: 420px;
+
+        background: #fff;
+
+        border-radius: 10px;
+
+        overflow: hidden;
+
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, .2);
+
+        animation: modalIn .2s ease;
+    }
+
+    .custom-modal-header {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        padding: 18px 20px;
+
+        border-bottom: 1px solid #eee;
+    }
+
+    .custom-modal-header h3 {
+        margin: 0;
+    }
+
+    .modal-close {
+        border: none;
+
+        background: none;
+
+        font-size: 24px;
+
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 0 20px 20px;
+    }
+
+    @keyframes modalIn {
+
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
 <body>
     <div class="app-shell">
@@ -9,51 +91,102 @@
         <div class="layout">
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
-                <h1 class="page-title">Trading code</h1>
+                <!-- <h1 class="page-title">Trading code</h1> -->
+                <div class="top-bar">
 
-                <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
-                <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+                    <!-- Left -->
+                    <div class="top-bar-left">
 
-                <section class="panel">
-                    <div class="panel-header"
-                        th:text="${editTradingCode != null ? 'Edit Trading Code' : 'Save Trading Code'}"></div>
-                    <div class="panel-body">
-                        <form th:if="${editTradingCode == null}" th:action="@{/trading-code/save}" method="post"
-                            class="inline-form">
-                            <input class="form-control" name="code" placeholder="Enter Trading Code" required>
-                            <button class="button button-secondary" type="submit">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Save</span>
-                            </button>
-                        </form>
-                        <form th:if="${editTradingCode != null}"
-                            th:action="@{/trading-code/{id}/edit(id=${editTradingCode.id})}" method="post"
-                            class="inline-form">
-                            <input class="form-control" name="code" placeholder="Enter Trading Code"
-                                th:value="${editTradingCode.code}" required>
-                            <button class="button button-secondary" type="submit">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Update</span>
-                            </button>
-                            <a class="button" th:href="@{/trading-code}">Cancel</a>
-                        </form>
+                        <h1 class="page-title-custom">
+                            Trading Code
+                        </h1>
+
                     </div>
-                </section>
+
+                    <!-- Right -->
+                    <div class="top-bar-right">
+
+                        <!-- Global Sync -->
+                        <form th:action="@{/trading-code/scrape-save-all}" method="post"
+                            onsubmit="return confirm('Scrape and save company data for all trading codes?');">
+
+                            <button type="submit" class="button button-success">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                                Global Sync
+                            </button>
+
+                        </form>
+
+                        <button type="submit" class="button button-primary" onclick="openTradingCodeModal()">
+                            <i class="fa-solid fa-plus"></i>
+                            Add New
+                        </button>
+
+                        <!-- Filter -->
+                        <div class="dropdown-wrapper">
+
+                            <button type="button" class="button button-secondary"
+                                onclick="toggleDropdown('filterMenu')">
+
+                                <i class="fa-solid fa-filter"></i>
+
+                                Filter
+
+                            </button>
+
+                            <div id="filterMenu" class="dropdown-menu-custom">
+
+                                <div class="dropdown-title">
+                                    Filter Trading Code
+                                </div>
+
+                                <form method="get" th:action="@{/trading-code}">
+
+                                    <div class="dropdown-group">
+
+                                        <input class="form-control" type="text" name="tradingCode"
+                                            th:value="${tradingCode}" placeholder="Trading Code"
+                                            list="tradingCodeDatalist">
+
+                                    </div>
+
+                                    <div class="dropdown-actions">
+
+                                        <button class="button button-secondary" type="submit">
+
+                                            Apply Filter
+
+                                        </button>
+
+                                        <a th:href="@{/trading-code}" class="button">
+
+                                            Clear
+
+                                        </a>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
                 <section class="panel">
                     <div class="panel-header panel-header-actions">
                         <span>Trading Code List</span>
-                        <form th:action="@{/trading-code/scrape-save-all}" method="post"
-                            onsubmit="return confirm('Scrape and save company data for all trading codes?');">
-                            <button class="button button-success" type="submit">
-                                <i class="fa-solid fa-cloud-arrow-down"></i> Scrape All
-                            </button>
-                        </form>
+
+
                     </div>
                     <div class="panel-body table-wrap">
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th>Trading Code</th>
                                     <th>Creation Date</th>
                                     <th>Created By</th>
@@ -61,17 +194,26 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="row : ${tradingCodes}">
+                                <tr th:each="row, stat : ${tradingCodes}">
+                                    <td th:text="${stat.count}"></td>
                                     <td class="fw-bold" th:text="${row.code}"></td>
-                                    <td th:text="${row.creationDate != null ? #temporals.format(row.creationDate, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                                    <td
+                                        th:text="${row.creationDate != null ? #temporals.format(row.creationDate, 'yyyy-MM-dd HH:mm') : '-'}">
+                                    </td>
                                     <td th:text="${row.createdBy ?: '-'}"></td>
                                     <td>
                                         <div class="button-group">
-                                            <a class="button button-small"
-                                                th:href="@{/trading-code(editId=${row.id})}">
-                                                <i class="fa-solid fa-pen-to-square"></i> Edit
-                                            </a>
-                                            <form th:action="@{/trading-code/{id}/scrape-save(id=${row.id})}" method="post">
+                                            <button type="button" class="button button-small" th:attr="
+            data-id=${row.id},
+            data-code=${row.code}" onclick="editTradingCode(this)">
+
+                                                <i class="fa-solid fa-pen-to-square"></i>
+
+                                                Edit
+
+                                            </button>
+                                            <form th:action="@{/trading-code/{id}/scrape-save(id=${row.id})}"
+                                                method="post">
                                                 <button class="button button-small button-success" type="submit">
                                                     <i class="fa-solid fa-cloud-arrow-down"></i> Save Data
                                                 </button>
@@ -86,7 +228,8 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(tradingCodes)}">
-                                    <td colspan="4" style="text-align: center; padding: 2rem;">No trading codes found.</td>
+                                    <td colspan="4" style="text-align: center; padding: 2rem;">No trading codes found.
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -95,6 +238,127 @@
             </main>
         </div>
     </div>
+    <!-- Trading Code Modal -->
+
+    <div id="tradingCodeModal" class="custom-modal">
+
+        <div class="custom-modal-content">
+
+            <!-- Header -->
+            <div class="custom-modal-header">
+
+                <h3>
+                    New Trading Code
+                </h3>
+
+                <button type="button" class="modal-close" onclick="closeTradingCodeModal()">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+            <form id="tradingCodeForm" th:action="@{/trading-code/save}" method="post">
+
+                <input type="hidden" id="tradingCodeId" name="id">
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+
+                        <label>
+                            Trading Code
+                        </label>
+
+                        <input type="text" id="tradingCodeInput" name="code" class="form-control"
+                            placeholder="Enter Trading Code" required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="submit" class="button button-success">
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+
+                        Save
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
 </body>
+<div th:replace="~{fragments/script-addon :: script-addon()}"></div>
+<script>
+
+    function openTradingCodeModal() {
+
+        document
+            .getElementById('tradingCodeModal')
+            .classList
+            .add('show');
+    }
+
+    function editTradingCode(button) {
+
+        const id =
+            button.dataset.id;
+
+        const code =
+            button.dataset.code;
+
+        document
+            .getElementById('tradingCodeModal')
+            .classList
+            .add('show');
+
+        document
+            .getElementById('tradingCodeId')
+            .value =
+            id;
+
+        document
+            .getElementById('tradingCodeInput')
+            .value =
+            code;
+
+        document
+            .getElementById('tradingCodeForm')
+            .action =
+            '/trading-code/' + id + '/edit';
+
+        document
+            .querySelector('#tradingCodeModal h3')
+            .innerText =
+            'Edit Trading Code';
+    }
+    function closeTradingCodeModal() {
+
+        document
+            .getElementById('tradingCodeModal')
+            .classList
+            .remove('show');
+    }
+
+    // outside click close
+    document
+        .getElementById('tradingCodeModal')
+        .addEventListener('click', function (event) {
+
+            if (event.target === this) {
+
+                closeTradingCodeModal();
+            }
+        });
+
+</script>
 
 </html>

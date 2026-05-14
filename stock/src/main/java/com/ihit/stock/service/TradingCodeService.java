@@ -4,9 +4,13 @@ import com.ihit.stock.dto.CompanyFundamentalDto;
 import com.ihit.stock.model.TradingCode;
 import com.ihit.stock.repository.TradingCodeRepository;
 import com.ihit.stock.service.scraper.CompanyScraperService;
+import com.ihit.stock.service.scraper.MarketScraperServcie;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,12 +19,14 @@ public class TradingCodeService {
     private final TradingCodeRepository repository;
     private final CompanyScraperService scraperService;
     private final CompanyService companyService;
+    private final MarketScraperServcie marketScraperServcie;
 
     public TradingCodeService(TradingCodeRepository repository, CompanyScraperService scraperService,
-            CompanyService companyService) {
+            CompanyService companyService, MarketScraperServcie marketScraperServcie) {
         this.repository = repository;
         this.scraperService = scraperService;
         this.companyService = companyService;
+        this.marketScraperServcie = marketScraperServcie;
     }
 
     @Transactional(readOnly = true)
@@ -78,9 +84,15 @@ public class TradingCodeService {
     public String scrapeAndSaveAll(String userName) {
         int saved = 0;
         List<String> failedCodes = new java.util.ArrayList<>();
+        LocalDate today = LocalDate.now();
+
         for (TradingCode tradingCode : repository.findAllByOrderByCodeAsc()) {
             try {
-                scrapeAndSaveCode(tradingCode.getCode(), userName);
+                String code = tradingCode.getCode();
+                // Scrape fundamental company information
+                scrapeAndSaveCode(code, userName);
+                // Scrape today's market archive data
+                marketScraperServcie.scrapeByDateRange(code, today, today, userName);
                 saved++;
             } catch (Exception e) {
                 failedCodes.add(tradingCode.getCode());
@@ -109,5 +121,10 @@ public class TradingCodeService {
             return null;
         }
         return userName.trim();
+    }
+
+    public List<String> getAllTradingCodes() {
+
+        return repository.findDistinctTradingCodes();
     }
 }
