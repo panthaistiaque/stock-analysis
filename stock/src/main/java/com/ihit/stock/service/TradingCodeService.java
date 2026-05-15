@@ -30,8 +30,12 @@ public class TradingCodeService {
     }
 
     @Transactional(readOnly = true)
-    public List<TradingCode> findAll() {
-        return repository.findAllByOrderByCodeAsc();
+    public List<TradingCode> findAll(@Nullable String code) {
+        if (code != null) {
+            return repository.findAllByCodeIgnoreCaseContainingOrderByCodeAsc(code);
+        } else {
+            return repository.findAllByOrderByCodeAsc();
+        }
     }
 
     @Transactional(readOnly = true)

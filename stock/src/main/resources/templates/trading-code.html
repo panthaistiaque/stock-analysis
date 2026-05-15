@@ -142,6 +142,10 @@
 
                                 <form method="get" th:action="@{/trading-code}">
 
+                                    <datalist id="tradingCodeDatalist">
+                                        <option th:each="code : ${allTradingCodes}" th:value="${code}"></option>
+                                    </datalist>
+
                                     <div class="dropdown-group">
 
                                         <input class="form-control" type="text" name="tradingCode"
@@ -177,9 +181,22 @@
                 </div>
 
                 <section class="panel">
-                    <div class="panel-header panel-header-actions">
-                        <span>Trading Code List</span>
+                    <div class="panel-header records-header">
+                        <div class="records-title">
+                            Trading Code List
+                        </div>
 
+                        <div class="active-filters">
+
+                            <span th:if="${tradingCode != null and !#strings.isEmpty(tradingCode)}"
+                                class="filter-badge">
+
+                                Code:
+                                <strong th:text="${tradingCode}"></strong>
+
+                            </span>
+
+                        </div>
 
                     </div>
                     <div class="panel-body table-wrap">

@@ -1,6 +1,7 @@
 package com.ihit.stock.repository;
 
 import com.ihit.stock.model.TradingCode;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,4 +20,6 @@ public interface TradingCodeRepository extends JpaRepository<TradingCode, Long> 
                 ORDER BY s.tradingCode
             """)
     List<String> findDistinctTradingCodes();
+
+    List<TradingCode> findAllByCodeIgnoreCaseContainingOrderByCodeAsc(String code);
 }

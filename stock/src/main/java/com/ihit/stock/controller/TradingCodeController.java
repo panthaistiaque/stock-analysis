@@ -29,11 +29,13 @@ public class TradingCodeController {
     }
 
     @GetMapping
-    public String view(@RequestParam(required = false) Long editId, Model model) {
-        model.addAttribute("tradingCodes", tradingCodeService.findAll());
+    public String view(@RequestParam(required = false) Long editId, Model model,@RequestParam(required = false) String tradingCode) {
+        model.addAttribute("tradingCodes", tradingCodeService.findAll(tradingCode));
+        
         if (editId != null) {
             model.addAttribute("editTradingCode", tradingCodeService.findById(editId));
         }
+        model.addAttribute("tradingCode", tradingCode);
         return "trading-code";
     }
 

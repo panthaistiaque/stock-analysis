@@ -733,3 +733,43 @@ button:disabled {
     font-size: 2rem;
     font-weight: 700;
 }
+
+.records-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.records-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.active-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    background: #eef3ff;
+    color: #3451b2;
+    border: 1px solid #d8e2ff;
+    border-radius: 999px;
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.filter-badge strong {
+    font-weight: 600;
+}
