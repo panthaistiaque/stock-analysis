@@ -1,2 +1,95 @@
-# stock-analysis
-Web application for DSE stock data upload, company information review, and fundamental analysis.
+# Stock Analysis Platform
+
+A modern stock market analysis and research platform focused on **fundamental analysis**, **market insights**, **smart alerts**, and **interactive dashboards** for investors and traders.
+
+---
+
+#  Features
+
+##  Dashboard & Market Overview
+- Real-time market monitoring
+- Interactive stock dashboard
+- Sector-wise market coverage
+- Market movers and trending stocks
+- Custom analytics widgets
+
+##  Fundamental Analysis
+- Company financial overview
+- EPS, PE Ratio, NAV, ROE analysis
+- Revenue and profit growth tracking
+- Historical financial comparison
+- Intrinsic value analysis
+
+##  Technical & Market Analysis
+- Price trend analysis
+- Volume analysis
+- Support & resistance detection
+- Breakout and momentum tracking
+- Market sentiment indicators
+
+##  Smart Alerts System
+Get notified for important market movements:
+- PE ratio unusually high
+- Sudden volume spike
+- Gap up / gap down
+- Price breakout
+- New yearly high
+- Unusual market activity
+
+##  Prediction & Research Tools
+- Regression-based price prediction
+- Historical trend analysis
+- Statistical market analysis
+
+##  Watchlist & Portfolio
+- Save favorite stocks
+- Portfolio tracking
+- Performance monitoring
+- Personalized research workspace
+
+
+---
+
+#  Tech Stack
+
+## Backend
+- Java
+- Spring Boot
+- PostgreSQL / H2 Database
+- Thymeleaf
+
+## Frontend
+- HTML5
+- CSS3
+- Bootstrap
+- JavaScript
+
+
+
+---
+
+
+#  Database Configuration
+
+Update `application.properties`:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/stockdb
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+---
+
+#  Future Development
+
+- AI-powered stock recommendations
+- Advanced technical indicators
+- Portfolio risk analysis
+- Mobile responsive optimization
+- Real-time notification system
+- Machine learning price prediction
+- DSE market integration improvements
+
+
+
