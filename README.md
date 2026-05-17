@@ -69,17 +69,80 @@ Get notified for important market movements:
 ---
 
 
-#  Database Configuration
+# Environment Profiles
 
-Update `application.properties`:
+This project supports multiple Spring profiles.
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/stockdb
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+## Available Profiles
+
+| Profile | Description |
+|----------|-------------|
+| `postgres` | Local PostgreSQL database |
+| `h2` | In-memory H2 database for testing |
+
+---
+
+## Configuration Files
+
+```text
+src/main/resources/
+├── application.properties
+├── application-postgres.properties
+└── application-h2.properties
 ```
 
 ---
+
+## Active Profile Configuration
+
+Default profile is configured in:
+
+```properties
+spring.profiles.active=postgres
+```
+
+Located inside:
+
+```text
+src/main/resources/application.properties
+```
+
+---
+
+## ▶️ Switch Database Profile
+
+### Use PostgreSQL
+
+```properties
+spring.profiles.active=postgres
+```
+
+### Use H2 Database
+
+```properties
+spring.profiles.active=h2
+```
+
+---
+
+## PostgreSQL Setup
+
+Configure database credentials inside:
+
+```text
+application-postgres.properties
+```
+
+Example:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/stockdb
+spring.datasource.username=postgres
+spring.datasource.password=password
+```
+
+---
+
 
 #  Future Development
 
