@@ -109,7 +109,7 @@ src/main/resources/application.properties
 
 ---
 
-## ▶️ Switch Database Profile
+## Switch Database Profile
 
 ### Use PostgreSQL
 
