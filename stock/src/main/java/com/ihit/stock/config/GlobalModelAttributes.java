@@ -68,6 +68,7 @@ public class GlobalModelAttributes {
 
         sidebarMenus.add(new MenuItem("Dashboard", "/dashboard"));
         // sidebarMenus.add(new MenuItem("Upload Excel", "/stocks/upload"));
+        sidebarMenus.add(new MenuItem("Market Analysis", "/market-analysis"));
         sidebarMenus.add(new MenuItem("Market Information", "/stocks/data"));
         sidebarMenus.add(new MenuItem("Market Scraping", "/stocks/market-data-scraping"));
         sidebarMenus.add(new MenuItem("Company Information", "/company/view"));

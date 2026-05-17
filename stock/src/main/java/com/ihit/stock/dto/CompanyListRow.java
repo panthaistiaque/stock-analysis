@@ -1,12 +1,15 @@
 package com.ihit.stock.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class CompanyListRow {
     private String code;
+    private String companyName;
     private String marketCategory;
     private String sector;
     private BigDecimal peRatio;
+    private LocalDateTime scrapingDate;
     private String lastEpsYear;
     private BigDecimal lastEps;
     private String lastDividendYear;
@@ -15,12 +18,16 @@ public class CompanyListRow {
 
     public String getCode() { return code; }
     public void setCode(String code) { this.code = code; }
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
     public String getMarketCategory() { return marketCategory; }
     public void setMarketCategory(String marketCategory) { this.marketCategory = marketCategory; }
     public String getSector() { return sector; }
     public void setSector(String sector) { this.sector = sector; }
     public BigDecimal getPeRatio() { return peRatio; }
     public void setPeRatio(BigDecimal peRatio) { this.peRatio = peRatio; }
+    public LocalDateTime getScrapingDate() { return scrapingDate; }
+    public void setScrapingDate(LocalDateTime scrapingDate) { this.scrapingDate = scrapingDate; }
     public String getLastEpsYear() { return lastEpsYear; }
     public void setLastEpsYear(String lastEpsYear) { this.lastEpsYear = lastEpsYear; }
     public BigDecimal getLastEps() { return lastEps; }

@@ -1,11 +1,15 @@
 package com.ihit.stock.controller;
 
 import com.ihit.stock.dto.CompanyFundamentalDto;
+import com.ihit.stock.dto.CompanyListRow;
 import com.ihit.stock.model.Company;
 import com.ihit.stock.model.DividendHistory;
 import com.ihit.stock.model.EpsHistory;
 import com.ihit.stock.service.CompanyService;
 import com.ihit.stock.service.scraper.CompanyScraperService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.ui.Model;
@@ -69,9 +73,15 @@ public class CompanyController {
             @RequestParam(required = false) String marketCategory,
             @RequestParam(required = false) BigDecimal minPeRatio,
             @RequestParam(required = false) BigDecimal maxPeRatio,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Model model) {
-        model.addAttribute("companies",
-                companyService.findListRows(code, sector, marketCategory, minPeRatio, maxPeRatio));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CompanyListRow> companyPage = companyService.findListRows(
+                code, sector, marketCategory, minPeRatio, maxPeRatio, pageable);
+
+        model.addAttribute("companyPage", companyPage);
+        model.addAttribute("companies", companyPage.getContent());
         model.addAttribute("code", code);
         model.addAttribute("sector", sector);
         model.addAttribute("marketCategory", marketCategory);

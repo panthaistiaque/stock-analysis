@@ -8,6 +8,9 @@ import com.ihit.stock.model.Company;
 import com.ihit.stock.model.DividendHistory;
 import com.ihit.stock.model.EpsHistory;
 import com.ihit.stock.repository.CompanyRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,13 +80,30 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public List<CompanyListRow> findListRows(String code, String sector, String marketCategory,
-            BigDecimal minPeRatio, BigDecimal maxPeRatio) {
-        return repository.findAll().stream()
+    public Page<CompanyListRow> findListRows(String code, String sector, String marketCategory,
+            BigDecimal minPeRatio, BigDecimal maxPeRatio, Pageable pageable) {
+        List<CompanyListRow> allRows = repository.findAll().stream()
                 .filter(company -> containsIgnoreCase(company.getTradingCode(), code))
                 .filter(company -> containsIgnoreCase(company.getSector(), sector))
                 .filter(company -> containsIgnoreCase(company.getMarketCategory(), marketCategory))
                 .filter(company -> isInPeRange(company.getPeRatio(), minPeRatio, maxPeRatio))
+                .sorted(Comparator.comparing(Company::getTradingCode, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .map(this::toListRow)
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allRows.size());
+
+        if (start > allRows.size()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, allRows.size());
+        }
+
+        return new PageImpl<>(allRows.subList(start, end), pageable, allRows.size());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompanyListRow> findAllListRows() {
+        return repository.findAll().stream()
                 .sorted(Comparator.comparing(Company::getTradingCode, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .map(this::toListRow)
                 .toList();
@@ -179,9 +199,11 @@ public class CompanyService {
     private CompanyListRow toListRow(Company company) {
         CompanyListRow row = new CompanyListRow();
         row.setCode(company.getTradingCode());
+        row.setCompanyName(company.getCompanyName());
         row.setMarketCategory(company.getMarketCategory());
         row.setSector(company.getSector());
         row.setPeRatio(company.getPeRatio());
+        row.setScrapingDate(company.getScrapingDate());
 
         EpsHistory latestEps = latestEps(company.getEpsHistory());
         if (latestEps != null) {

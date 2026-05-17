@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/head :: commonHead('Dashboard | Stock')}"></head>
 <head th:replace="~{fragments/head :: commonHead('Dashboard | ' + ${appTitle})}"></head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+
 <body>
     <div class="app-shell">
         <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus},${user})}"></div>
@@ -10,19 +11,513 @@
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
                 <h1 class="page-title">Dashboard</h1>
+
+                <!-- Global Data Gap Alert -->
+                <section class="panel"
+                    style="background-color: #fef2f2; border: 2px solid #fecaca; margin-bottom: 2rem;"
+                    th:if="${not #lists.isEmpty(missingMarketDates)}">
+                    <div class="panel-body"
+                        style="color: #991b1b; display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem;">
+                        <i class="fa-solid fa-triangle-exclamation fa-3x"></i>
+                        <div>
+                            <h2 style="margin: 0; color: #991b1b; font-size: 1.25rem;">Critical Market Data Gap!</h2>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 1rem;">
+                                The system is missing data for the following trading sessions:
+                                <strong th:each="date, iter : ${missingMarketDates}"
+                                    th:text="${#temporals.format(date, 'MMMM dd') + (iter.last ? '' : ', ')}"></strong>.
+                                Please <a th:href="@{/trading-code}"
+                                    style="color: #b91c1c; font-weight: bold; text-decoration: underline;">Sync All
+                                    Companies</a> to resolve this.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
                 <div class="stats-grid">
-                    <section class="panel stat">
-                        <div class="stat-number">Ready</div>
-                        <div>Application status</div>
+                    <section class="panel stat"
+                        th:onclick="${totalCompanies > 0} ? 'openInterestedCompaniesModal()' : ''"
+                        th:style="${totalCompanies > 0} ? 'cursor: pointer;' : ''">
+                        <div class="stat-number" th:text="${totalCompanies}">0</div>
+                        <div>Interested Companies</div>
+                    </section>
+                    <section class="panel stat"
+                        th:onclick="${isAdmin and totalFundamentalDone > 0} ? 'openFundamentalAnalysisModal()' : ''"
+                        th:style="${isAdmin and totalFundamentalDone > 0} ? 'cursor: pointer;' : ''">
+                        <div class="stat-number" th:text="${isAdmin ? totalFundamentalDone : 'User'}">User</div>
+                        <div th:text="${isAdmin ? 'Fundamental Reports' : 'Current access'}">Current access</div>
+                    </section>
+                    <section class="panel stat" th:if="${missingDataCount != null}"
+                        th:onclick="${missingDataCount > 0} ? 'openMissingDataModal()' : ''"
+                        th:style="${missingDataCount > 0} ? 'cursor: pointer;' : ''">
+                        <div class="stat-number" th:text="${missingDataCount}" style="color: #ef4444;">0</div>
+                        <div>Data Gaps Found</div>
                     </section>
                     <section class="panel stat">
-                        <div class="stat-number" th:text="${isAdmin ? 'Admin' : 'User'}">User</div>
-                        <div>Current access</div>
+                        <div class="stat-number">
+                            <span th:if="${syncRequired}" style="color: #f59e0b;"><i
+                                    class="fa-solid fa-circle-exclamation"></i> Outdated</span>
+                            <span th:unless="${syncRequired}" style="color: #10b981;"><i
+                                    class="fa-solid fa-circle-check"></i> Current</span>
+                        </div>
+                        <div th:text="${marketStatusMessage}">Market Status</div>
                     </section>
                 </div>
+
+                <section class="system-status-grid" aria-label="System status overview">
+                    <div class="panel status-card"
+                        th:classappend="${marketCoveragePercent >= 100} ? ' good' : ' warning'"
+                        th:onclick="${marketDataCompanyCount > 0} ? 'openMarketCoverageModal()' : ''"
+                        th:style="${marketDataCompanyCount > 0} ? 'cursor: pointer;' : ''">
+                        <div class="status-label">Market Coverage</div>
+                        <div class="status-value">
+                            <span th:text="${#numbers.formatDecimal(marketCoveragePercent, 1, 'COMMA', 0, 'POINT')}">0</span>%
+                        </div>
+                        <div class="status-note">
+                            <span th:text="${marketDataCompanyCount}">0</span>
+                            of
+                            <span th:text="${totalCompanies}">0</span>
+                            interested companies have market data.
+                        </div>
+                    </div>
+
+                    <div class="panel status-card" th:classappend="${fundamentalCoveragePercent >= 100} ? ' good' : ' warning'">
+                        <div class="status-label">Fundamental Coverage</div>
+                        <div class="status-value">
+                            <span th:text="${#numbers.formatDecimal(fundamentalCoveragePercent, 1, 'COMMA', 0, 'POINT')}">0</span>%
+                        </div>
+                        <div class="status-note">
+                            <span th:text="${missingFundamentalCount}">0</span>
+                            companies still need fundamental scraping.
+                        </div>
+                    </div>
+
+                    <div class="panel status-card" th:classappend="${syncRequired} ? ' warning' : ' good'">
+                        <div class="status-label">Latest Market Date</div>
+                        <div class="status-value" th:text="${latestMarketDate != null ? latestMarketDate : 'No Data'}">No Data</div>
+                        <div class="status-note" th:text="${marketStatusMessage}">Market Status</div>
+                    </div>
+
+                    <div class="panel status-card">
+                        <div class="status-label">Stored Market Rows</div>
+                        <div class="status-value" th:text="${#numbers.formatInteger(marketRecordCount, 1, 'COMMA')}">0</div>
+                        <div class="status-note">Total saved daily market records.</div>
+                    </div>
+
+                    <div class="panel status-card"
+                        th:classappend="${verifiedForecastCount > 0} ? ' good' : ' warning'"
+                        th:onclick="${savedForecastCount > 0} ? 'openForecastCoverageModal()' : ''"
+                        th:style="${savedForecastCount > 0} ? 'cursor: pointer;' : ''">
+                        <div class="status-label">Forecast Verification</div>
+                        <div class="status-value">
+                            <span th:text="${verifiedForecastCount}">0</span>
+                            /
+                            <span th:text="${savedForecastCount}">0</span>
+                        </div>
+                        <div class="status-note">Saved forecasts verified against actual market prices.</div>
+                    </div>
+
+                    <div class="panel status-card" th:classappend="${#lists.isEmpty(missingMarketDates)} ? ' good' : ' danger'">
+                        <div class="status-label">Missing Sessions</div>
+                        <div class="status-value" th:text="${#lists.size(missingMarketDates)}">0</div>
+                        <div class="status-note">
+                            Expected market dates missing after the latest stored session.
+                        </div>
+                    </div>
+
+                    <div class="panel status-card clickable good"
+                        data-bs-toggle="modal" data-bs-target="#sectorCoverageBootstrapModal">
+                        <div class="status-label">Sector Coverage</div>
+                        <div class="status-value" th:text="${sectorCount}">0</div>
+                        <div class="status-note">Total sectors covered from company fundamentals.</div>
+                        <div class="status-preview-list" th:if="${not #lists.isEmpty(sectorCoveragePreview)}">
+                            <div class="status-preview-row" th:each="sector : ${sectorCoveragePreview}">
+                                <span th:text="${sector.sector}">Banking</span>
+                                <strong th:text="${sector.companyCount}">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel status-card clickable warning"
+                        data-bs-toggle="modal" data-bs-target="#smartAlertsBootstrapModal">
+                        <div class="status-label">Smart Alerts</div>
+                        <div class="status-value" th:text="${smartAlertCount}">0</div>
+                        <div class="status-note">Latest intelligent market signals.</div>
+                        <div class="status-preview-list" th:if="${not #lists.isEmpty(smartAlertPreview)}">
+                            <div class="alert-preview-row" th:each="alert : ${smartAlertPreview}">
+                                <span class="alert-dot"
+                                    th:classappend="${alert.severity == 'BULLISH' ? ' bullish' : (alert.severity == 'BEARISH' ? ' bearish' : '')}"></span>
+                                <span th:text="${alert.tradingCode + ' ' + alert.alertType}">GP breakout detected</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
+
+    <div class="modal fade analytics-modal" id="sectorCoverageBootstrapModal" tabindex="-1"
+        aria-labelledby="sectorCoverageBootstrapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sectorCoverageBootstrapModalLabel">
+                        <i class="fa-solid fa-layer-group"></i> Sector Coverage Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div th:if="${#lists.isEmpty(sectorCoverage)}" class="text-muted">
+                        No company sector data is available yet.
+                    </div>
+                    <table class="table" th:if="${not #lists.isEmpty(sectorCoverage)}">
+                        <thead>
+                            <tr>
+                                <th>Sector</th>
+                                <th style="text-align:right;">Companies</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sector : ${sectorCoverage}">
+                                <td th:text="${sector.sector}">Banking</td>
+                                <td style="text-align:right;" th:text="${sector.companyCount}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade analytics-modal" id="smartAlertsBootstrapModal" tabindex="-1"
+        aria-labelledby="smartAlertsBootstrapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="smartAlertsBootstrapModalLabel">
+                        <i class="fa-solid fa-bell"></i> Market Smart Alerts
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert-filter-bar">
+                        <button type="button" class="button button-small alert-filter active" data-alert-filter="ALL">All</button>
+                        <button type="button" class="button button-small button-success alert-filter" data-alert-filter="BULLISH">Bullish</button>
+                        <button type="button" class="button button-small button-danger alert-filter" data-alert-filter="BEARISH">Bearish</button>
+                        <button type="button" class="button button-small button-secondary alert-filter" data-alert-filter="WARNING">Warning</button>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(smartAlerts)}" class="text-muted">
+                        No smart alerts are available yet.
+                    </div>
+
+                    <div class="table-wrap" th:if="${not #lists.isEmpty(smartAlerts)}">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Trading Code</th>
+                                    <th>Alert Type</th>
+                                    <th>Description</th>
+                                    <th>Trigger Date</th>
+                                    <th style="text-align:right;">Current Price</th>
+                                    <th style="text-align:right;">Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="alert : ${smartAlerts}" class="smart-alert-row"
+                                    th:attr="data-alert-severity=${alert.severity}">
+                                    <td>
+                                        <span class="severity-badge"
+                                            th:classappend="${alert.severity == 'BULLISH' ? ' bullish' : (alert.severity == 'BEARISH' ? ' bearish' : '')}"
+                                            th:text="${alert.severity}">WARNING</span>
+                                    </td>
+                                    <td class="fw-bold" th:text="${alert.tradingCode}">GP</td>
+                                    <td th:text="${alert.alertType}">Price breakout</td>
+                                    <td th:text="${alert.description}">Breakout above resistance</td>
+                                    <td th:text="${alert.triggerDate != null ? alert.triggerDate : '-'}">-</td>
+                                    <td style="text-align:right;"
+                                        th:text="${alert.currentPrice != null ? #numbers.formatDecimal(alert.currentPrice, 1, 'COMMA', 2, 'POINT') : '-'}">-</td>
+                                    <td style="text-align:right;"
+                                        th:text="${alert.confidencePercent != null ? alert.confidencePercent + '%' : '-'}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missing Market Data Alerts Modal -->
+    <div id="marketCoverageModal" class="custom-modal" th:if="${not #lists.isEmpty(marketCoverageSummary)}">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="margin:0;">Market Coverage By Trading Code</h3>
+                <button type="button" class="modal-close" onclick="closeMarketCoverageModal()">&times;</button>
+            </div>
+            <div class="modal-body table-wrap" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Trading Code</th>
+                            <th>Min Trading Date</th>
+                            <th>Max Trading Date</th>
+                            <th style="text-align:right;">Rows</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row, stat : ${marketCoverageSummary}">
+                            <td th:text="${stat.count}"></td>
+                            <td class="fw-bold" th:text="${row.tradingCode}"></td>
+                            <td th:text="${row.minTradingDate}"></td>
+                            <td th:text="${row.maxTradingDate}"></td>
+                            <td style="text-align:right;" th:text="${#numbers.formatInteger(row.rowCount, 1, 'COMMA')}"></td>
+                            <td>
+                                <a th:href="@{/stocks/data(tradingCode=${row.tradingCode})}" class="button button-small">
+                                    <i class="fa-solid fa-table"></i> View Data
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="forecastCoverageModal" class="custom-modal" th:if="${not #lists.isEmpty(forecastCoverageSummary)}">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="margin:0;">Forecast Rows By Trading Code</h3>
+                <button type="button" class="modal-close" onclick="closeForecastCoverageModal()">&times;</button>
+            </div>
+            <div class="modal-body table-wrap" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Trading Code</th>
+                            <th style="text-align:right;">Forecasted Rows</th>
+                            <th style="text-align:right;">Verified Rows</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row, stat : ${forecastCoverageSummary}">
+                            <td th:text="${stat.count}"></td>
+                            <td class="fw-bold" th:text="${row.tradingCode}"></td>
+                            <td style="text-align:right;" th:text="${#numbers.formatInteger(row.forecastRowCount, 1, 'COMMA')}"></td>
+                            <td style="text-align:right;" th:text="${#numbers.formatInteger(row.verifiedRowCount, 1, 'COMMA')}"></td>
+                            <td>
+                                <a th:href="@{/market-analysis(tradingCode=${row.tradingCode})}" class="button button-small">
+                                    <i class="fa-solid fa-chart-line"></i> Analysis
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missing Market Data Alerts Modal -->
+    <div id="missingDataModal" class="custom-modal" th:if="${not #lists.isEmpty(missingDataList)}">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="margin:0;">Missing Market Data Alerts</h3>
+                <button type="button" class="modal-close" onclick="closeMissingDataModal()">&times;</button>
+            </div>
+            <div class="modal-body table-wrap" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Trading Code</th>
+                            <th>Last Updated</th>
+                            <th>Missing Since</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item, stat : ${missingDataList}">
+                            <td th:text="${stat.count}"></td>
+                            <td class="fw-bold" th:text="${item.tradingCode}"></td>
+                            <td th:text="${item.lastDate != null ? item.lastDate : 'Never'}"></td>
+                            <td>
+                                <span th:if="${item.lastDate == null}" class="badge badge-danger">Never Synced</span>
+                                <span th:if="${item.lastDate != null}" class="badge badge-warning"
+                                    th:text="${item.missingFrom}"></span>
+                            </td>
+                            <td>
+                                <div class="button-group">
+                                    <a th:href="@{/stocks/data(tradingCode=${item.tradingCode})}"
+                                        class="button button-small">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i> View Data
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interested Companies Modal -->
+    <div id="interestedCompaniesModal" class="custom-modal" th:if="${not #lists.isEmpty(allCompanyDetails)}">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="margin:0;">Interested Companies</h3>
+                <button type="button" class="modal-close" onclick="closeInterestedCompaniesModal()">&times;</button>
+            </div>
+            <div class="modal-body table-wrap" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Trading Code</th>
+                            <th>Company Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="company, stat : ${allCompanyDetails}">
+                            <td th:text="${stat.count}"></td>
+                            <td class="fw-bold" th:text="${company.code}"></td>
+                            <td th:text="${company.companyName ?: '-'}"></td>
+                            <td>
+                                <div class="button-group">
+                                    <a th:href="@{/company/{code}/report(code=${company.code})}"
+                                        class="button button-small">
+                                        <i class="fa-solid fa-file-lines"></i> Report
+                                    </a>
+                                    <a th:href="@{/fundamental-analysis/{code}(code=${company.code})}"
+                                        class="button button-small button-success">
+                                        <i class="fa-solid fa-chart-line"></i> Analysis
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fundamental Analysis Reports Modal -->
+    <div id="fundamentalAnalysisModal" class="custom-modal" th:if="${isAdmin and not #lists.isEmpty(fundamentalDetails)}">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="margin:0;">Fundamental Analysis Reports From Company Table</h3>
+                <button type="button" class="modal-close" onclick="closeFundamentalAnalysisModal()">&times;</button>
+            </div>
+            <div class="modal-body table-wrap" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <!-- <th>Company Name</th> -->
+                            <th>Code</th>
+                            <th>Sector</th>
+                            <th>Category</th>
+                            <th style="text-align:right;">PE Ratio</th>
+                            <!-- <th>Scraped On</th> -->
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="company, stat : ${fundamentalDetails}">
+                            <td th:text="${stat.count}"></td>
+                            <!-- <td class="modal-company-name" th:text="${company.companyName ?: '-'}"></td> -->
+                            <td class="fw-bold" th:text="${company.code}"></td>
+                            <td th:text="${company.sector ?: '-'}"></td>
+                            <td th:text="${company.marketCategory ?: '-'}"></td>
+                            <td style="text-align:right;" th:text="${company.peRatio != null ? #numbers.formatDecimal(company.peRatio, 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+                            <!-- <td th:text="${company.scrapingDate != null ? #temporals.format(company.scrapingDate, 'yyyy-MM-dd HH:mm') : '-'}"></td> -->
+                            <td>
+                                <div class="button-group">
+                                    <a th:href="@{/company/{code}/report(code=${company.code})}"
+                                        class="button button-small">
+                                        <i class="fa-solid fa-file-lines"></i> Report
+                                    </a>
+                                    <a th:href="@{/fundamental-analysis/{code}(code=${company.code})}"
+                                        class="button button-small button-success">
+                                        <i class="fa-solid fa-chart-line"></i> Analysis
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
+    <script>
+        function openMissingDataModal() {
+            document.getElementById('missingDataModal').classList.add('show');
+        }
+        function closeMissingDataModal() {
+            document.getElementById('missingDataModal').classList.remove('show');
+        }
+        function openInterestedCompaniesModal() {
+            document.getElementById('interestedCompaniesModal').classList.add('show');
+        }
+        function closeInterestedCompaniesModal() {
+            document.getElementById('interestedCompaniesModal').classList.remove('show');
+        }
+        function openFundamentalAnalysisModal() {
+            document.getElementById('fundamentalAnalysisModal').classList.add('show');
+        }
+        function closeFundamentalAnalysisModal() {
+            document.getElementById('fundamentalAnalysisModal').classList.remove('show');
+        }
+        function openMarketCoverageModal() {
+            document.getElementById('marketCoverageModal').classList.add('show');
+        }
+        function closeMarketCoverageModal() {
+            document.getElementById('marketCoverageModal').classList.remove('show');
+        }
+        function openForecastCoverageModal() {
+            document.getElementById('forecastCoverageModal').classList.add('show');
+        }
+        function closeForecastCoverageModal() {
+            document.getElementById('forecastCoverageModal').classList.remove('show');
+        }
+        document.querySelectorAll('.alert-filter').forEach(button => {
+            button.addEventListener('click', function () {
+                const filter = this.dataset.alertFilter;
+                document.querySelectorAll('.alert-filter').forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.smart-alert-row').forEach(row => {
+                    const severity = row.dataset.alertSeverity;
+                    row.style.display = filter === 'ALL' || severity === filter ? '' : 'none';
+                });
+            });
+        });
+        window.onclick = function (event) {
+            const modal = document.getElementById('missingDataModal');
+            const interestedModal = document.getElementById('interestedCompaniesModal');
+            const fundamentalModal = document.getElementById('fundamentalAnalysisModal');
+            const marketCoverageModal = document.getElementById('marketCoverageModal');
+            const forecastCoverageModal = document.getElementById('forecastCoverageModal');
+            if (event.target === modal) {
+                closeMissingDataModal();
+            } else if (interestedModal && event.target === interestedModal) { // Check if modal exists
+                closeInterestedCompaniesModal();
+            } else if (fundamentalModal && event.target === fundamentalModal) {
+                closeFundamentalAnalysisModal();
+            } else if (marketCoverageModal && event.target === marketCoverageModal) {
+                closeMarketCoverageModal();
+            } else if (forecastCoverageModal && event.target === forecastCoverageModal) {
+                closeForecastCoverageModal();
+            }
+        }
+    </script>
 </body>
 
 </html>

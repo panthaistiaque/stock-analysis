@@ -4,7 +4,10 @@ import com.ihit.stock.dto.PasswordChangeForm;
 import com.ihit.stock.dto.ProfileForm;
 import com.ihit.stock.model.AppUser;
 import com.ihit.stock.repository.AppUserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -55,8 +58,21 @@ public class AppUserService implements UserDetailsService {
         user.approve();
     }
 
+    @Transactional(readOnly = true)
+    public Page<AppUser> findAll(String search, String roleFilter, Pageable pageable) {
+        if ((search != null && !search.isBlank()) || (roleFilter != null && !roleFilter.isBlank())) {
+            return userRepository.findAllFiltered(search, roleFilter, pageable);
+        }
+        return userRepository.findAll(pageable);
+    }
+
     public List<AppUser> findAllUsers() {
         return userRepository.findAllByOrderByIdAsc();
+    }
+
+    public boolean isAdmin(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 
     public AppUser findByUsername(String username) {

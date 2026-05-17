@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: commonHead('Market Analysis | ' + ${appTitle})}"></head>
+<body>
+    <div class="app-shell">
+        <div th:replace="~{fragments/header :: appHeader(${appTitle}, ${username}, ${headerMenus}, ${user})}"></div>
+        <div class="layout">
+            <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
+            <main class="content">
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <h1 class="page-title">Market Analysis</h1>
+                    </div>
+                    <div class="top-bar-right">
+                        <form method="get" th:action="@{/market-analysis}" class="d-flex gap-2">
+                            <input type="text" name="tradingCode" class="form-control" 
+                                   placeholder="Search Trading Code..." th:value="${selectedCode}" 
+                                   list="tradingCodeList" autocomplete="off" style="width: 250px;">
+                            <button type="submit" class="button button-primary">Analyze</button>
+                        </form>
+                        <datalist id="tradingCodeList">
+                            <option th:each="code : ${tradingCodes}" th:value="${code.code}"></option>
+                        </datalist>
+                    </div>
+                </div>
+
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+                <div th:if="${company}" class="analysis-grid">
+                    
+                    <!-- KPI Section -->
+                    <div class="panel" style="grid-column: 1 / -1;">
+                        <div class="panel-header" th:text="${company.companyName} + ' (' + ${company.tradingCode} + ') - ' + ${company.sector}"></div>
+                        <div class="panel-body">
+                            <div class="kpi-grid">
+                                <div class="kpi-item">
+                                    <div class="kpi-label">Last Price</div>
+                                    <div class="kpi-value" th:text="${company.lastTradingPrice != null ? #numbers.formatDecimal(company.lastTradingPrice, 1, 'COMMA', 2, 'POINT') : '-'}"></div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-label">P/E Ratio</div>
+                                    <div class="kpi-value">
+                                        <span th:text="${company.peRatio != null ? #numbers.formatDecimal(company.peRatio, 1, 'COMMA', 2, 'POINT') : '-'}"></span>
+                                        <span th:if="${peRatioManuallyCalculated}" class="manual-signature">Manual calculated</span>
+                                    </div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-label">Div. Yield</div>
+                                    <div class="kpi-value" th:text="${company.dividendYield != null ? #numbers.formatDecimal(company.dividendYield, 1, 'COMMA', 2, 'POINT') + '%' : '-'}"></div>
+                                </div>
+                                <div class="kpi-item">
+                                    <div class="kpi-label">Market Cap</div>
+                                    <div class="kpi-value" th:text="${company.marketCapitalization != null ? #numbers.formatDecimal(company.marketCapitalization / 1000000, 1, 'COMMA', 2, 'POINT') + 'M' : '-'}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="grid-column: span 1;">
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <span>Price Analysis & Forecast</span>
+                            <div class="button-group chart-btn-group">
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(1, this)">1M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(3, this)">3M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(6, this)">6M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(12, this)">1Y</button>
+                                <button type="button" class="button button-small button-primary active time-range-btn" onclick="updateChartRange(-1, this)">All</button>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="grid-column: span 1;">
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <span>Volume Trend</span>
+                            <div class="button-group chart-btn-group">
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(1, this)">1M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(3, this)">3M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(6, this)">6M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(12, this)">1Y</button>
+                                <button type="button" class="button button-small button-primary active time-range-btn" onclick="updateChartRange(-1, this)">All</button>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="grid-column: span 1;">
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <span>Trade Frequency (No. of Trades)</span>
+                            <div class="button-group chart-btn-group">
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(1, this)">1M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(3, this)">3M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(6, this)">6M</button>
+                                <button type="button" class="button button-small button-secondary time-range-btn" onclick="updateChartRange(12, this)">1Y</button>
+                                <button type="button" class="button button-small button-primary active time-range-btn" onclick="updateChartRange(-1, this)">All</button>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <canvas id="tradeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- EPS vs Dividend Relation -->
+                    <div class="panel">
+                        <div class="panel-header">Earnings vs Dividend Payout</div>
+                        <div class="panel-body">
+                            <canvas id="epsDivChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Dividend History -->
+                    <div class="panel">
+                        <div class="panel-header">Dividend History (%)</div>
+                        <div class="panel-body">
+                            <canvas id="dividendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- NAV Chart -->
+                    <div class="panel">
+                        <div class="panel-header">Net Asset Value (NAV) Trend</div>
+                        <div class="panel-body">
+                            <canvas id="navChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel forecast-panel" style="grid-column: 1 / -1;">
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <span>Forecasted Price Verification</span>
+                            <form th:if="${forecastRows != null and !#lists.isEmpty(forecastRows)}"
+                                  th:action="@{/market-analysis/forecast/save}" method="post">
+                                <input type="hidden" name="tradingCode" th:value="${company.tradingCode}">
+                                <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="button button-small button-primary">Save Forecast</button>
+                            </form>
+                        </div>
+                        <div class="panel-body">
+                            <div th:if="${forecastWarning}" class="alert alert-warning" th:text="${forecastWarning}"></div>
+                            <div th:if="${forecastRows == null or #lists.isEmpty(forecastRows)}" class="text-muted">
+                                At least 3 market price rows are required to generate a forecast.
+                            </div>
+
+                            <div th:if="${forecastRows != null and !#lists.isEmpty(forecastRows)}" class="table-wrap">
+                                <div class="forecast-title">Generated forecast from latest market data</div>
+                                <table class="table forecast-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Base Date</th>
+                                            <th>Target Date</th>
+                                            <th>Days</th>
+                                            <th>Predicted</th>
+                                            <th>Lower</th>
+                                            <th>Upper</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="row : ${forecastRows}">
+                                            <td th:text="${row.forecastBaseDate}"></td>
+                                            <td th:text="${row.targetDate}"></td>
+                                            <td th:text="${row.horizonDays}"></td>
+                                            <td th:text="${#numbers.formatDecimal(row.predictedPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                                            <td th:text="${#numbers.formatDecimal(row.lowerBound, 1, 'COMMA', 2, 'POINT')}"></td>
+                                            <td th:text="${#numbers.formatDecimal(row.upperBound, 1, 'COMMA', 2, 'POINT')}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div th:if="${savedForecastRows != null and !#lists.isEmpty(savedForecastRows)}" class="table-wrap saved-forecast-wrap">
+                                <div class="forecast-title">Saved forecasts checked against real market price</div>
+                                <table class="table forecast-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Base Date</th>
+                                            <th>Target Date</th>
+                                            <th>Predicted</th>
+                                            <th>Actual Date</th>
+                                            <th>Actual Price</th>
+                                            <th>Error</th>
+                                            <th>Error %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="row : ${savedForecastRows}">
+                                            <td th:text="${row.forecastBaseDate}"></td>
+                                            <td th:text="${row.targetDate}"></td>
+                                            <td th:text="${#numbers.formatDecimal(row.predictedPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                                            <td th:text="${row.actualDate != null ? row.actualDate : '-'}"></td>
+                                            <td th:text="${row.actualPrice != null ? #numbers.formatDecimal(row.actualPrice, 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+                                            <td th:text="${row.absoluteError != null ? #numbers.formatDecimal(row.absoluteError, 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+                                            <td th:text="${row.percentageError != null ? #numbers.formatDecimal(row.percentageError, 1, 'COMMA', 2, 'POINT') + '%' : '-'}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div  th:if="${company == null and error == null}" class="text-center p-5 text-muted">
+                    <i class="fa-solid fa-chart-line fa-4x mb-3"></i>
+                    <p>Enter a trading code above to generate visual market analysis.</p>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+    
+    <script th:if="${company}" th:inline="javascript">
+        /*<![CDATA[*/
+        const priceData = (/*[[${priceHistory}]]*/ []).filter(d => d && d.date);
+        const epsData = /*[[${epsHistory}]]*/ [];
+        const divData = /*[[${dividendHistory}]]*/ [];
+        const forecastRows = /*[[${forecastRows}]]*/ [];
+        
+        let priceChart, volumeChart, tradeChart;
+        let fullAvgVolume = [], fullAvgTrades = [], fullSMA20 = [], fullSMA50 = [], fullForecast = null, analysisResult = null;
+
+        // Helper to parse strings to numbers
+        const num = (v) => {
+            if (v === null || v === undefined) return 0;
+            const parsed = parseFloat(String(v).replace(/[%,$,\s]/g, ''));
+            return Number.isFinite(parsed) ? parsed : 0;
+        };
+
+        // Moving Average Calculation helper
+        const calculateSMA = (data, period) => {
+            let sma = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    sma.push(null);
+                } else {
+                    let sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                    sma.push(sum / period);
+                }
+            }
+            return sma;
+        };
+
+        const forecastSeries = {
+            pred: forecastRows.map(row => ({ x: luxon.DateTime.fromISO(row.targetDateIso || row.targetDate).valueOf(), y: num(row.predictedPrice) })),
+            upper: forecastRows.map(row => ({ x: luxon.DateTime.fromISO(row.targetDateIso || row.targetDate).valueOf(), y: num(row.upperBound) })),
+            lower: forecastRows.map(row => ({ x: luxon.DateTime.fromISO(row.targetDateIso || row.targetDate).valueOf(), y: num(row.lowerBound) }))
+        };
+
+        /**
+         * Advanced Stock Prediction Engine
+         * Implements Weighted Linear Regression, Technical Analysis, and Probability Modeling
+         */
+        const PredictionEngine = {
+            // Technical Indicator: Exponential Moving Average
+            calculateEMA(data, period) {
+                if (!data.length) return [];
+                const k = 2 / (period + 1);
+                let ema = [data[0]];
+                for (let i = 1; i < data.length; i++) {
+                    ema.push(data[i] * k + ema[i - 1] * (1 - k));
+                }
+                return ema;
+            },
+
+            // Technical Indicator: Relative Strength Index
+            calculateRSI(data, period = 14) {
+                let results = new Array(data.length).fill(null);
+                if (data.length <= period) return results;
+
+                let gains = 0, losses = 0;
+                for (let i = 1; i <= period; i++) {
+                    let diff = data[i] - data[i - 1];
+                    if (diff >= 0) gains += diff; else losses -= diff;
+                }
+
+                let avgGain = gains / period;
+                let avgLoss = losses / period;
+                results[period] = this.toRsi(avgGain, avgLoss);
+
+                for (let i = period + 1; i < data.length; i++) {
+                    let diff = data[i] - data[i - 1];
+                    let gain = diff >= 0 ? diff : 0;
+                    let loss = diff < 0 ? -diff : 0;
+                    avgGain = (avgGain * (period - 1) + gain) / period;
+                    avgLoss = (avgLoss * (period - 1) + loss) / period;
+                    results[i] = this.toRsi(avgGain, avgLoss);
+                }
+                return results;
+            },
+
+            toRsi(avgGain, avgLoss) {
+                if (avgLoss === 0 && avgGain === 0) return 50;
+                if (avgLoss === 0) return 100;
+                return 100 - (100 / (1 + avgGain / avgLoss));
+            },
+
+            // Support and Resistance Detection via Pivot Points
+            detectLevels(data) {
+                const prices = data.map(d => num(d.ltp));
+                const sorted = [...prices].sort((a, b) => a - b);
+                return {
+                    support: sorted[Math.floor(sorted.length * 0.1)],
+                    resistance: sorted[Math.floor(sorted.length * 0.9)]
+                };
+            },
+
+            // Core Prediction Logic
+            analyze(data) {
+            const n = data.length;
+            if (n < 3) return null;
+
+                // 1. Prepare Data & Weighted Regression (Recent data carries 2x weight)
+                const x = Array.from({ length: n }, (_, i) => i);
+                const y = data.map(d => num(d.ltp));
+                const weights = x.map(i => (i > n * 0.8) ? 2.0 : 1.0);
+
+                let sumW = 0, sumWX = 0, sumWY = 0, sumWXX = 0, sumWXY = 0;
+                for (let i = 0; i < n; i++) {
+                    sumW += weights[i];
+                    sumWX += weights[i] * x[i];
+                    sumWY += weights[i] * y[i];
+                    sumWXX += weights[i] * x[i] * x[i];
+                    sumWXY += weights[i] * x[i] * y[i];
+                }
+
+                // 2. Regression Calculations (y = mx + b)
+                const denominator = sumW * sumWXX - sumWX * sumWX;
+                if (denominator === 0) return null;
+
+                const slope = (sumW * sumWXY - sumWX * sumWY) / denominator;
+                const intercept = (sumWY - slope * sumWX) / sumW;
+
+                // 3. Error Analysis & Volatility
+                const residuals = y.map((val, i) => val - (slope * i + intercept));
+                const meanResidual = residuals.reduce((a, b) => a + b, 0) / n;
+                const stdDev = Math.sqrt(residuals.map(r => Math.pow(r - meanResidual, 2)).reduce((a, b) => a + b, 0) / (n - 1));
+                const residualStandardError = Math.sqrt(residuals.reduce((a, b) => a + b * b, 0) / Math.max(1, n - 2));
+
+                // 4. Forecast Generation with Non-Linear Volatility Expansion
+            const lastDate = luxon.DateTime.fromISO(data[n-1].date);
+            const forecast = { pred: [], upper: [], lower: [] };
+                const periods = [7, 15, 30, 60];
+                const resultsAt = {};
+            
+            for(let i = 0; i <= 60; i++) {
+                const nextDate = lastDate.plus({ days: i });
+                const xTimestamp = nextDate.valueOf();
+                    const xVal = n + i - 1;
+                    const pred = slope * xVal + intercept;
+
+                    // Probability Cone: Uncertainty expands relative to the square root of time
+                    // This mirrors Brownian motion / Random Walk behavior in markets
+                    const timeExpansionFactor = Math.sqrt(1 + (1 / n) + Math.pow(xVal - (n / 2), 2) / sumWXX);
+                    const confidenceInterval = 1.96 * residualStandardError * timeExpansionFactor;
+
+                    forecast.pred.push({ x: xTimestamp, y: pred });
+                    forecast.upper.push({ x: xTimestamp, y: pred + confidenceInterval });
+                    forecast.lower.push({ x: xTimestamp, y: pred - confidenceInterval });
+
+                    if (periods.includes(i)) resultsAt[i] = { pred, upper: pred + confidenceInterval, lower: pred - confidenceInterval };
+                }
+
+                // 5. Technical Indicators & Trend Detection
+                const rsi = this.calculateRSI(y);
+                const latestRsi = rsi[n - 1];
+                const levels = this.detectLevels(data);
+                const currentPrice = y[n - 1];
+                
+                let trend = "Sideways";
+                if (slope > 0.01 && (!Number.isFinite(latestRsi) || latestRsi > 50)) trend = "Bullish";
+                if (slope < -0.01 && (!Number.isFinite(latestRsi) || latestRsi < 50)) trend = "Bearish";
+
+                // 6. Probability Scenarios
+                const expectedReturn = currentPrice > 0 ? ((resultsAt[60].pred - currentPrice) / currentPrice) * 100 : 0;
+
+                return {
+                    trend: trend,
+                    confidence: currentPrice > 0 ? Math.max(10, Math.min(95, 100 - (stdDev / currentPrice * 1000))) : 10,
+                    expectedPrice: resultsAt[60].pred,
+                    upperBound: resultsAt[60].upper,
+                    lowerBound: resultsAt[60].lower,
+                    support: levels.support,
+                    resistance: levels.resistance,
+                    volatility: (stdDev / currentPrice) > 0.05 ? "High" : "Low",
+                    expectedReturn: expectedReturn.toFixed(2),
+                    forecast: forecast,
+                    technical: {
+                        rsi: Number.isFinite(latestRsi) ? latestRsi : null,
+                        ema20: this.calculateEMA(y, 20).pop(),
+                        sma50: fullSMA50[n-1]
+                    },
+                    scenarios: {
+                        bullish: resultsAt[60].upper,
+                        neutral: resultsAt[60].pred,
+                        bearish: resultsAt[60].lower
+                    }
+                };
+            }
+        };
+
+        function updateChartRange(months, btn) {
+            if (!priceChart || !volumeChart || !tradeChart || priceData.length === 0) {
+                return;
+            }
+
+            // Update button styles for all button groups
+            document.querySelectorAll('.chart-btn-group').forEach(group => {
+                group.querySelectorAll('.time-range-btn').forEach(b => {
+                    if (b.innerText === btn.innerText) {
+                        b.classList.remove('button-secondary');
+                        b.classList.add('button-primary', 'active');
+                    } else {
+                        b.classList.remove('button-primary', 'active');
+                        b.classList.add('button-secondary');
+                    }
+                });
+            });
+
+            let filteredData;
+            if (months === -1) {
+                filteredData = priceData;
+            } else {
+                const latestDate = new Date(priceData[priceData.length - 1].date);
+                const cutoff = new Date(latestDate);
+                cutoff.setMonth(cutoff.getMonth() - months);
+                filteredData = priceData.filter(d => new Date(d.date) >= cutoff);
+            }
+
+            const labels = filteredData.map(d => d.date);
+            const startIndex = priceData.length - filteredData.length;
+            
+            // Update Price Chart
+            priceChart.data.datasets[0].data = filteredData.map(d => ({ x: luxon.DateTime.fromISO(d.date).valueOf(), y: d.ltp }));
+            priceChart.data.datasets[1].data = fullSMA20.slice(startIndex).map((v, i) => ({ x: luxon.DateTime.fromISO(labels[i]).valueOf(), y: v }));
+            priceChart.data.datasets[2].data = fullSMA50.slice(startIndex).map((v, i) => ({ x: luxon.DateTime.fromISO(labels[i]).valueOf(), y: v }));
+            
+            // Forecast and Cone stay fixed to show forward-looking data
+            priceChart.data.datasets[3].data = forecastSeries.pred;
+            priceChart.data.datasets[4].data = forecastSeries.upper;
+            priceChart.data.datasets[5].data = forecastSeries.lower;
+            
+            priceChart.update('none');
+
+            // Update Volume Chart
+            volumeChart.data.labels = labels;
+            volumeChart.data.datasets[0].data = filteredData.map(d => d.volume);
+            volumeChart.data.datasets[1].data = fullAvgVolume.slice(startIndex);
+            volumeChart.update('none');
+
+            // Update Trade Chart
+            tradeChart.data.labels = labels;
+            tradeChart.data.datasets[0].data = filteredData.map(d => d.trade);
+            tradeChart.data.datasets[1].data = fullAvgTrades.slice(startIndex);
+            tradeChart.update('none');
+        }
+
+        // Initialize Analysis Engine
+        if (priceData.length > 0) {
+            const ltps = priceData.map(d => d.ltp);
+            fullSMA20 = calculateSMA(ltps, 20);
+            fullSMA50 = calculateSMA(ltps, 50);
+            
+            analysisResult = PredictionEngine.analyze(priceData);
+                
+        priceChart = new Chart(document.getElementById('priceChart'), {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Historical LTP',
+                        data: priceData.map(d => ({ x: luxon.DateTime.fromISO(d.date).valueOf(), y: d.ltp })),
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '20-Day SMA',
+                        data: fullSMA20.map((v, i) => ({ x: luxon.DateTime.fromISO(priceData[i].date).valueOf(), y: v })),
+                        borderColor: '#f59e0b',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: '50-Day SMA',
+                        data: fullSMA50.map((v, i) => ({ x: luxon.DateTime.fromISO(priceData[i].date).valueOf(), y: v })),
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'Forecast',
+                        data: forecastSeries.pred,
+                        borderColor: '#8b5cf6',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'Probability Cone',
+                        data: forecastSeries.upper,
+                        borderColor: 'transparent',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        pointRadius: 0,
+                        fill: '+1' // Fill to the next dataset (lower bound)
+                    },
+                    {
+                        label: 'Lower Cone',
+                        data: forecastSeries.lower,
+                        borderColor: 'transparent',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    legend: { 
+                        display: true,
+                        labels: {
+                            filter: (item) => !item.text.includes('Lower') // Simplify legend
+                        }
+                    } 
+                },
+                scales: { x: { type: 'time', time: { unit: 'day' } } }
+            }
+        });
+        }
+
+        // Dividend Bar Chart
+        new Chart(document.getElementById('dividendChart'), {
+            type: 'bar',
+            data: {
+                labels: divData.map(d => d.year),
+                datasets: [
+                    { label: 'Cash %', data: divData.map(d => num(d.cashDividend)), backgroundColor: '#10b981' },
+                    { label: 'Stock %', data: divData.map(d => num(d.stockDividend)), backgroundColor: '#f59e0b' }
+                ]
+            },
+            options: { responsive: true, scales: { x: { stacked: false }, y: { beginAtZero: true } } }
+        });
+
+        // EPS vs Dividend Relation (Simplified as grouped bars)
+        new Chart(document.getElementById('epsDivChart'), {
+            type: 'bar',
+            data: {
+                labels: epsData.map(d => d.year),
+                datasets: [
+                    { label: 'EPS', data: epsData.map(d => d.eps), backgroundColor: '#3b82f6' },
+                    { 
+                        label: 'Cash Div (Est Value)', 
+                        data: epsData.map(e => {
+                            const d = divData.find(div => div.year === e.year);
+                            return d ? (num(d.cashDividend) * 0.1) : 0; // Assuming face value 10
+                        }), 
+                        backgroundColor: '#ec4899' 
+                    }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        // NAV Chart
+        new Chart(document.getElementById('navChart'), {
+            type: 'line',
+            data: {
+                labels: epsData.map(d => d.year),
+                datasets: [{
+                    label: 'NAV per Share',
+                    data: epsData.map(d => d.navPerShare),
+                    borderColor: '#8b5cf6',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#8b5cf6',
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Volume Chart
+        const volumes = priceData.map(d => d.volume);
+        fullAvgVolume = calculateSMA(volumes, 20); // 20-day Moving Average
+
+        volumeChart = new Chart(document.getElementById('volumeChart'), {
+            type: 'line',
+            data: {
+                labels: priceData.map(d => d.date),
+                datasets: [
+                    {
+                        label: 'Trade Volume',
+                        data: volumes,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '20-Day Avg Volume',
+                        data: fullAvgVolume,
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: { 
+                responsive: true,
+                plugins: { legend: { display: true, position: 'top' } }, // Enable legend for volume chart
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (v) => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(1) + 'K' : v
+                        }
+                    }
+                }
+            }
+        });
+
+        // Trade Chart
+        const trades = priceData.map(d => d.trade);
+        fullAvgTrades = calculateSMA(trades, 20);
+
+        tradeChart = new Chart(document.getElementById('tradeChart'), {
+            type: 'line',
+            data: {
+                labels: priceData.map(d => d.date),
+                datasets: [
+                    {
+                        label: 'No. of Trades',
+                        data: trades,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '20-Day Avg Trades',
+                        data: fullAvgTrades,
+                        borderColor: '#f43f5e',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: { 
+                responsive: true,
+                plugins: { legend: { display: true, position: 'top' } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'K' : v
+                        }
+                    }
+                }
+            }
+        });
+        /*]]>*/
+    </script>
+
+    <style>
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
+            gap: 20px;
+        }
+        .panel-body canvas {
+            max-height: 300px;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+        .kpi-item {
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .kpi-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .kpi-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .manual-signature {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            padding: 3px 7px;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+            color: #713f12;
+            background: #fef3c7;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .chart-btn-group {
+            display: flex;
+            gap: 5px;
+            float: right;
+            margin-top: 10px;
+        
+        }
+        .panel-header .button-group { margin-top: 0; } /* Adjust button group in header */
+        .forecast-panel .panel-header form {
+            margin: 0;
+        }
+        .alert-warning {
+            color: #713f12;
+            background: #fef3c7;
+        }
+        .forecast-title {
+            margin: 0 0 10px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .saved-forecast-wrap {
+            margin-top: 22px;
+        }
+        .forecast-table th,
+        .forecast-table td {
+            text-align: right;
+        }
+        .forecast-table th:first-child,
+        .forecast-table td:first-child,
+        .forecast-table th:nth-child(2),
+        .forecast-table td:nth-child(2),
+        .forecast-table th:nth-child(4),
+        .forecast-table td:nth-child(4) {
+            text-align: left;
+        }
+        @media (max-width: 760px) {
+            .top-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .top-bar-right form {
+                width: 100%;
+            }
+            .top-bar-right .form-control {
+                width: 100% !important;
+            }
+            .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .chart-btn-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</body>
+</html>

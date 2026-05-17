@@ -10,56 +10,91 @@
         <div class="layout">
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="page-title mb-0">Listed Companies</h1>
-                    <a th:href="@{/company/view}" class="button">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Scrape Company
-                    </a>
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="page-title-custom">
+                            Listed Companies
+                        </div>
+                    </div>
+                    <div class="top-bar-right">
+
+                        <form th:action="@{/trading-code/scrape-save-all}" method="post" style="display: inline;"
+                            onsubmit="return confirm('Initiate full market scraping? This may take several minutes.');">
+                            <button type="submit" class="button button-success">
+                                <i class="fa-solid fa-cloud-arrow-down me-1"></i>
+                                Global Sync
+                            </button>
+                        </form>
+
+                        <a th:href="@{/company/view}" class="button">
+                            <i class="fa-solid fa-plus me-1"></i>
+                            Scrape Company
+                        </a>
+
+                        <div class="dropdown-wrapper">
+                            <button type="button" class="button button-secondary" onclick="toggleDropdown('filterMenu')">
+                                <i class="fa-solid fa-filter"></i>
+                                Filter
+                            </button>
+
+                            <div id="filterMenu" class="dropdown-menu-custom">
+                                <div class="dropdown-title">
+                                    Filter Companies
+                                </div>
+                                <form th:action="@{/company/list}" method="get">
+                                    <div class="dropdown-group">
+                                        <input class="form-control" name="code" th:value="${code}" placeholder="Trading code">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <input class="form-control" name="sector" th:value="${sector}" placeholder="Sector">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <input class="form-control" name="marketCategory" th:value="${marketCategory}"
+                                            placeholder="Category">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <div class="inline-form">
+                                            <input class="form-control" type="number" step="any" name="minPeRatio"
+                                                th:value="${minPeRatio}" placeholder="Min PE">
+                                            <input class="form-control" type="number" step="any" name="maxPeRatio"
+                                                th:value="${maxPeRatio}" placeholder="Max PE">
+                                        </div>
+                                    </div>
+                                    <div class="dropdown-actions">
+                                        <button class="button button-secondary" type="submit">Apply Filter</button>
+                                        <a class="button" th:href="@{/company/list}">Clear</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <section class="panel">
-                    <div class="panel-header">Search Companies</div>
-                    <div class="panel-body">
-                        <form th:action="@{/company/list}" method="get" class="form-grid">
-                            <div class="form-group">
-                                <label>Code</label>
-                                <input class="form-control" name="code" th:value="${code}" placeholder="Trading code">
-                            </div>
-                            <div class="form-group">
-                                <label>Sector</label>
-                                <input class="form-control" name="sector" th:value="${sector}" placeholder="Sector">
-                            </div>
-                            <div class="form-group">
-                                <label>Market Category</label>
-                                <input class="form-control" name="marketCategory" th:value="${marketCategory}"
-                                    placeholder="Category">
-                            </div>
-                            <div class="form-group">
-                                <label>PE Ratio Range</label>
-                                <div class="inline-form">
-                                    <input class="form-control" type="number" step="any" name="minPeRatio"
-                                        th:value="${minPeRatio}" placeholder="Min">
-                                    <input class="form-control" type="number" step="any" name="maxPeRatio"
-                                        th:value="${maxPeRatio}" placeholder="Max">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button class="button button-secondary" type="submit">
-                                    <i class="fa-solid fa-filter"></i> Search
-                                </button>
-                                <a class="button" th:href="@{/company/list}">Clear</a>
-                            </div>
-                        </form>
+                    <div class="panel-header records-header">
+                        <div class="records-title">
+                            Company Records
+                        </div>
+                        <div class="active-filters">
+                            <span th:if="${code != null and !#strings.isEmpty(code)}" class="filter-badge">
+                                Code: <strong th:text="${code}"></strong>
+                            </span>
+                            <span th:if="${sector != null and !#strings.isEmpty(sector)}" class="filter-badge">
+                                Sector: <strong th:text="${sector}"></strong>
+                            </span>
+                            <span th:if="${marketCategory != null and !#strings.isEmpty(marketCategory)}" class="filter-badge">
+                                Category: <strong th:text="${marketCategory}"></strong>
+                            </span>
+                            <span th:if="${minPeRatio != null or maxPeRatio != null}" class="filter-badge">
+                                PE: <strong th:text="${(minPeRatio ?: '0') + ' - ' + (maxPeRatio ?: 'Any')}"></strong>
+                            </span>
+                        </div>
                     </div>
-                </section>
-
-                <section class="panel">
-                    <div class="panel-header">Company Records</div>
                     <div class="panel-body table-wrap">
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th>Code</th>
                                     <th>Market Category</th>
                                     <th>Sector</th>
@@ -70,7 +105,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="company : ${companies}">
+                                <tr th:each="company, stat : ${companies}">
+                                    <td th:text="${stat.count + (companyPage.number * companyPage.size)}"></td>
                                     <td class="fw-bold" th:text="${company.code}"></td>
                                     <td th:text="${company.marketCategory ?: '-'}"></td>
                                     <td th:text="${company.sector ?: '-'}"></td>
@@ -91,15 +127,18 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(companies)}">
-                                    <td colspan="7" style="text-align: center; padding: 2rem;">No company records found.</td>
+                                    <td colspan="8" style="text-align: center; padding: 2rem;">No company records found.</td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <div th:replace="~{fragments/pagination :: pagination(${companyPage}, '/company/list')}"></div>
                     </div>
                 </section>
             </main>
         </div>
     </div>
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>
 
 </html>

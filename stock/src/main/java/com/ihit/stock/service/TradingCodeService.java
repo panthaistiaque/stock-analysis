@@ -7,6 +7,8 @@ import com.ihit.stock.service.scraper.CompanyScraperService;
 import com.ihit.stock.service.scraper.MarketScraperServcie;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +32,11 @@ public class TradingCodeService {
     }
 
     @Transactional(readOnly = true)
-    public List<TradingCode> findAll(@Nullable String code) {
-        if (code != null) {
-            return repository.findAllByCodeIgnoreCaseContainingOrderByCodeAsc(code);
+    public Page<TradingCode> findAll(@Nullable String code, Pageable pageable) {
+        if (code != null && !code.isBlank()) {
+            return repository.findAllByCodeIgnoreCaseContainingOrderByCodeAsc(code, pageable);
         } else {
-            return repository.findAllByOrderByCodeAsc();
+            return repository.findAllByOrderByCodeAsc(pageable);
         }
     }
 
@@ -127,8 +129,7 @@ public class TradingCodeService {
         return userName.trim();
     }
 
-    public List<String> getAllTradingCodes() {
-
-        return repository.findDistinctTradingCodes();
+    public List<TradingCodeRepository.TradingCodeProjection> getAllTradingCodes() {
+        return repository.findTradingCodeDetails();
     }
 }

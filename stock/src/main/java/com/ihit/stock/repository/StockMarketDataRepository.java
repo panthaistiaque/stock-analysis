@@ -12,7 +12,20 @@ import org.springframework.data.repository.query.Param;
 
 public interface StockMarketDataRepository extends JpaRepository<StockMarketData, Long> {
 
+    interface MarketCoverageProjection {
+        String getTradingCode();
+        LocalDate getMinTradingDate();
+        LocalDate getMaxTradingDate();
+        Long getRowCount();
+    }
+
     Optional<StockMarketData> findByDateAndTradingCodeIgnoreCase(LocalDate date, String tradingCode);
+
+    List<StockMarketData> findAllByTradingCodeIgnoreCaseOrderByDateAsc(String tradingCode);
+
+    Optional<StockMarketData> findFirstByTradingCodeIgnoreCaseAndDateGreaterThanEqualOrderByDateAsc(
+            String tradingCode,
+            LocalDate date);
 
     List<StockMarketData> findAllByOrderByDateDescTradingCodeAsc();
 
@@ -27,4 +40,17 @@ public interface StockMarketDataRepository extends JpaRepository<StockMarketData
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             Pageable pageable);
+
+    @Query("SELECT DISTINCT s.tradingCode FROM StockMarketData s")
+    List<String> findDistinctTradingCodes();
+
+    @Query("SELECT s.tradingCode AS tradingCode, MIN(s.date) AS minTradingDate, MAX(s.date) AS maxTradingDate, COUNT(s) AS rowCount " +
+           "FROM StockMarketData s GROUP BY s.tradingCode ORDER BY s.tradingCode")
+    List<MarketCoverageProjection> findMarketCoverageSummary();
+
+    @Query("SELECT MAX(s.date) FROM StockMarketData s WHERE UPPER(s.tradingCode) = UPPER(:tradingCode)")
+    Optional<LocalDate> findMaxDateByTradingCode(@Param("tradingCode") String tradingCode);
+
+    @Query("SELECT MAX(s.date) FROM StockMarketData s")
+    Optional<LocalDate> findOverallMaxDate();
 }

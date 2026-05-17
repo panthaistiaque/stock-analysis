@@ -20,6 +20,33 @@
                     </div>
                     <div class="top-bar-right">
 
+                        <div class="dropdown-wrapper">
+                            <button type="button" class="button button-primary" onclick="toggleDropdown('scraperMenu')">
+                                <i class="fa-solid fa-calendar-days me-1"></i>
+                                Historical Scraper
+                            </button>
+                            <div id="scraperMenu" class="dropdown-menu-custom">
+                                <div class="dropdown-title">Targeted Historical Scraper</div>
+                                <form th:action="@{/trading-code/scrape-by-date-range}" method="post">
+                                    <div class="dropdown-group">
+                                        <input type="text" class="form-control" name="tradingCode"
+                                            placeholder="Trading Code" required list="tradingCodeList" autocomplete="off">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <label class="small text-muted" style="display: block; margin-bottom: 5px;">From Date</label>
+                                        <input type="date" class="form-control date-picker flatpickr-input" name="fromDate"
+                                            th:value="${scrapingFromDate}" required autocomplete="off">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <label class="small text-muted" style="display: block; margin-bottom: 5px;">To Date</label>
+                                        <input type="date" class="form-control date-picker flatpickr-input" name="toDate"
+                                            th:value="${scrapingToDate}" required autocomplete="off">
+                                    </div>
+                                    <button type="submit" class="button button-primary" style="width: 100%;">Fetch History</button>
+                                </form>
+                            </div>
+                        </div>
+
                         <form th:action="@{/stocks/sync-today}" method="post" style="display: inline;">
                             <button type="submit" class="button button-success">
                                 <i class="fa-solid fa-cloud-arrow-down me-1"></i>
@@ -53,9 +80,6 @@
 
                                         <input type="text" class="form-control" name="tradingCode" autocomplete="off"
                                             placeholder="Trading Code" list="tradingCodeList">
-                                        <datalist id="tradingCodeList">
-                                            <option th:each="code : ${tradingCodes}" th:value="${code}"></option>
-                                        </datalist>
 
                                     </div>
 
@@ -118,6 +142,10 @@
 
                         </div>
                     </div>
+
+                    <datalist id="tradingCodeList">
+                        <option th:each="code : ${tradingCodes}" th:value="${code.code}"></option>
+                    </datalist>
 
                 </div>
 

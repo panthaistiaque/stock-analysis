@@ -10,9 +10,54 @@
         <div class="layout">
             <div th:replace="~{fragments/sidebar :: sidebar(${sidebarMenus})}"></div>
             <main class="content">
-                <h1 class="page-title">User List</h1>
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="page-title-custom">
+                            User List
+                        </div>
+                    </div>
+                    <div class="top-bar-right">
+                        <div class="dropdown-wrapper">
+                            <button type="button" class="button button-secondary" onclick="toggleDropdown('filterMenu')">
+                                <i class="fa-solid fa-filter"></i>
+                                Filter
+                            </button>
+                            <div id="filterMenu" class="dropdown-menu-custom">
+                                <div class="dropdown-title">Filter Users</div>
+                                <form method="get" th:action="@{/admin/users}">
+                                    <div class="dropdown-group">
+                                        <input class="form-control" type="text" name="search" th:value="${search}" placeholder="Username or Email">
+                                    </div>
+                                    <div class="dropdown-group">
+                                        <select class="form-control" name="roleFilter">
+                                            <option value="">All Roles</option>
+                                            <option value="ADMIN" th:selected="${roleFilter == 'ADMIN'}">Admin</option>
+                                            <option value="USER" th:selected="${roleFilter == 'USER'}">User</option>
+                                        </select>
+                                    </div>
+                                    <div class="dropdown-actions">
+                                        <button class="button button-secondary" type="submit">Apply Filter</button>
+                                        <a th:href="@{/admin/users}" class="button">Clear</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <section class="panel">
-                    <div class="panel-body">
+                    <div class="panel-header records-header">
+                        <div class="records-title">User Records</div>
+                        <div class="active-filters">
+                            <span th:if="${search != null and !#strings.isEmpty(search)}" class="filter-badge">
+                                Search: <strong th:text="${search}"></strong>
+                            </span>
+                            <span th:if="${roleFilter != null and !#strings.isEmpty(roleFilter)}" class="filter-badge">
+                                Role: <strong th:text="${roleFilter}"></strong>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="panel-body table-wrap">
                         <table class="table">
                             <thead>
                                 <tr>
@@ -26,8 +71,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="user : ${users}">
-                                    <td th:text="${user.id}">1</td>
+                                <tr th:each="user, stat : ${users}">
+                                    <td th:text="${stat.count + (userPage.number * userPage.size)}"></td>
                                     <td th:text="${user.fullName}">Full Name</td>
                                     <td th:text="${user.email}">email</td>
                                     <td th:text="${user.username}">admin</td>
@@ -51,11 +96,14 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <div th:replace="~{fragments/pagination :: pagination(${userPage}, '/admin/users')}"></div>
                     </div>
                 </section>
             </main>
         </div>
     </div>
+    <div th:replace="~{fragments/script-addon :: script-addon()}"></div>
 </body>
 
 </html>

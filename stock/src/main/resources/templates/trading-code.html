@@ -142,10 +142,6 @@
 
                                 <form method="get" th:action="@{/trading-code}">
 
-                                    <datalist id="tradingCodeDatalist">
-                                        <option th:each="code : ${allTradingCodes}" th:value="${code}"></option>
-                                    </datalist>
-
                                     <div class="dropdown-group">
 
                                         <input class="form-control" type="text" name="tradingCode"
@@ -212,7 +208,7 @@
                             </thead>
                             <tbody>
                                 <tr th:each="row, stat : ${tradingCodes}">
-                                    <td th:text="${stat.count}"></td>
+                                    <td th:text="${stat.count + (tradingCodePage.number * tradingCodePage.size)}"></td>
                                     <td class="fw-bold" th:text="${row.code}"></td>
                                     <td
                                         th:text="${row.creationDate != null ? #temporals.format(row.creationDate, 'yyyy-MM-dd HH:mm') : '-'}">
@@ -245,11 +241,12 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(tradingCodes)}">
-                                    <td colspan="4" style="text-align: center; padding: 2rem;">No trading codes found.
+                                    <td colspan="5" style="text-align: center; padding: 2rem;">No trading codes found.
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                        <div th:replace="~{fragments/pagination :: pagination(${tradingCodePage}, '/trading-code')}"></div>
                     </div>
                 </section>
             </main>

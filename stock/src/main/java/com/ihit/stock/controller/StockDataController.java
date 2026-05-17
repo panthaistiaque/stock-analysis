@@ -5,18 +5,16 @@ import com.ihit.stock.model.StockMarketData;
 import com.ihit.stock.service.ExcelStockDataParser;
 import com.ihit.stock.service.StockMarketDataService;
 import com.ihit.stock.service.TradingCodeService;
+import com.ihit.stock.util.AppConstants;
 import jakarta.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
-import java.time.LocalTime;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -100,8 +98,8 @@ public class StockDataController {
     @GetMapping("/data")
     public String savedData(
             @RequestParam(required = false) String tradingCode,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Principal principal, Authentication authentication,
@@ -111,7 +109,7 @@ public class StockDataController {
 
         // Default current date if null
         if (fromDate == null) {
-            fromDate = LocalDate.now();
+            fromDate = LocalDate.now().minusYears(2);
         }
 
         if (toDate == null) {
@@ -123,7 +121,7 @@ public class StockDataController {
             model.addAttribute("stockPage", stockPage);
             model.addAttribute("stocks", stockPage.getContent());
         } catch (IllegalArgumentException exception) {
-            model.addAttribute("error", exception.getMessage());
+            model.addAttribute(AppConstants.ERROR, exception.getMessage());
             model.addAttribute("stockPage", Page.empty(pageable));
             model.addAttribute("stocks", Collections.emptyList());
         }
@@ -132,6 +130,8 @@ public class StockDataController {
         model.addAttribute("fromDate", fromDate);
         model.addAttribute("toDate", toDate);
         model.addAttribute( "tradingCodes", tradingCodeService.getAllTradingCodes());
+        model.addAttribute("scrapingFromDate", LocalDate.now().minusYears(2));
+        model.addAttribute("scrapingToDate", LocalDate.now());
 
         return "stock-data";
     }
@@ -178,7 +178,10 @@ public class StockDataController {
     }
 
     @GetMapping("/market-data-scraping")
-    public String marketDataScrapingPage() {
+    public String marketDataScrapingPage(Model model) {
+        model.addAttribute("tradingCodes", tradingCodeService.getAllTradingCodes());
+        model.addAttribute("fromDate", LocalDate.now().minusYears(2));
+        model.addAttribute("toDate", LocalDate.now());
         return "market-data-scraping";
     }
 }
